@@ -10,41 +10,38 @@ const auth = getAuth(firebaseApp);
 const provider = new GoogleAuthProvider();
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null); // agora aceita campos extras
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  if (!auth) return;
-
-// src/hooks/useAuth.ts
-
-const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-  if (firebaseUser) {
-    const userRef = doc(db, "users", firebaseUser.uid);
-    const docSnap = await getDoc(userRef);
-
-    if (!docSnap.exists()) {
-      // Cria o documento com dados básicos do usuário
-      await setDoc(userRef, {
-        name: firebaseUser.displayName,
-        email: firebaseUser.email,
-        photoURL: firebaseUser.photoURL,
-        createdAt: new Date(),
-        following: []    // ← adicione esta linha
-      });
-    }
-
-    setUser(firebaseUser);
-  } else {
-    setUser(null);
-  }
-  setLoading(false);
-});
-
-
-  return () => unsubscribe();
-}, []);
-
+  useEffect(() => {
+    if (!auth) return;
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userRef = doc(db, "users", firebaseUser.uid);
+        const docSnap = await getDoc(userRef);
+        let extra = {};
+        if (!docSnap.exists()) {
+          await setDoc(userRef, {
+            name: firebaseUser.displayName,
+            email: firebaseUser.email,
+            photoURL: firebaseUser.photoURL,
+            createdAt: new Date(),
+            following: [],
+            isAdmin: false,
+            banned: false,
+          });
+          extra = { isAdmin: false, banned: false };
+        } else {
+          extra = docSnap.data();
+        }
+        setUser({ ...firebaseUser, ...extra });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   function login() {
     return signInWithPopup(auth, provider);

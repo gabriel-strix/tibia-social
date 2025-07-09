@@ -16,11 +16,14 @@ import {
   where,
   setDoc,
   deleteDoc as deleteFollowDoc,
+  getDoc,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import db from "@/lib/firestore";
 import Comment from "@/components/Comment";
 import Link from "next/link";
+import { sendNotification } from "@/lib/notificationService";
+import { sendReport } from "@/lib/reportService";
 
 type Post = {
   id: string;
@@ -161,17 +164,60 @@ export default function FeedPage() {
     setEditingText("");
   }
 
+  async function handleAddComment(postId: string) {
+    const text = commentTextMap[postId];
+    if (!text || !text.trim() || !user) return;
+
+    // Busca o post para notificar o dono
+    const postDoc = await getDoc(doc(db, "posts", postId));
+    const post = postDoc.exists() ? postDoc.data() : null;
+    await addDoc(collection(db, "posts", postId, "comments"), {
+      uid: user.uid,
+      name: user.displayName || "",
+      photoURL: user.photoURL || "",
+      text: text.trim(),
+      createdAt: Timestamp.now(),
+      likes: [],
+    });
+    // Notifica o dono do post (não notifica a si mesmo)
+    if (post && post.uid !== user.uid) {
+      await sendNotification({
+        toUid: post.uid,
+        fromUid: user.uid,
+        fromName: user.displayName || "",
+        fromPhotoURL: user.photoURL || "",
+        type: "comment",
+        text: `${user.displayName} comentou no seu post: \"${text.trim()}\"`,
+        postId,
+        createdAt: Timestamp.now(),
+      });
+    }
+
+    setCommentTextMap((prev) => ({ ...prev, [postId]: "" }));
+  }
+
   async function toggleLike(post: Post) {
     if (!user) return;
-
     const liked = post.likes?.includes(user.uid);
     const newLikes = liked
       ? post.likes?.filter((uid) => uid !== user.uid)
       : [...(post.likes || []), user.uid];
-
     await updateDoc(doc(db, "posts", post.id), {
       likes: newLikes,
     });
+    // Notifica o dono do post apenas ao curtir (não ao descurtir)
+    if (!liked && post.uid !== user.uid) {
+      await sendNotification({
+        toUid: post.uid,
+        fromUid: user.uid,
+        fromName: user.displayName || "",
+        fromPhotoURL: user.photoURL || "",
+        type: "like",
+        text: `${user.displayName} curtiu seu post!`,
+        postId: post.id,
+        createdAt: Timestamp.now(),
+      });
+    }
   }
 
   async function toggleFollow(targetUid: string) {
@@ -186,22 +232,6 @@ export default function FeedPage() {
     }
   }
 
-  async function handleAddComment(postId: string) {
-    const text = commentTextMap[postId];
-    if (!text || !text.trim()) return;
-
-    await addDoc(collection(db, "posts", postId, "comments"), {
-      uid: user?.uid,
-      name: user?.displayName || "",
-      photoURL: user?.photoURL || "",
-      text: text.trim(),
-      createdAt: Timestamp.now(),
-      likes: [],
-    });
-
-    setCommentTextMap((prev) => ({ ...prev, [postId]: "" }));
-  }
-
   async function toggleLikeComment(postId: string, comment: CommentType) {
     if (!user) return;
 
@@ -212,6 +242,21 @@ export default function FeedPage() {
 
     const commentRef = doc(db, "posts", postId, "comments", comment.id);
     await updateDoc(commentRef, { likes: newLikes });
+
+    // Notifica o dono do comentário ao curtir (não ao descurtir e não notifica a si mesmo)
+    if (!liked && comment.uid !== user.uid) {
+      await sendNotification({
+        toUid: comment.uid,
+        fromUid: user.uid,
+        fromName: user.displayName || "",
+        fromPhotoURL: user.photoURL || "",
+        type: "like",
+        text: `${user.displayName} curtiu seu comentário: \"${comment.text.slice(0, 30)}${comment.text.length > 30 ? '...' : ''}\"`,
+        postId,
+        commentId: comment.id,
+        createdAt: Timestamp.now(),
+      });
+    }
   }
 
   if (loading) return <p className="text-zinc-200">Carregando...</p>;
@@ -357,6 +402,30 @@ export default function FeedPage() {
                         >Excluir</button>
                       </>
                     )}
+                    {/* Botão de denúncia de post */}
+                    {!isOwner && post.uid !== user.uid && (
+                      <button
+                        onClick={async () => {
+                          const reason = prompt('Descreva o motivo da denúncia:');
+                          if (!reason) return;
+                          await sendReport({
+                            type: "post",
+                            contentId: post.id,
+                            contentText: post.text,
+                            reportedByUid: user.uid,
+                            reportedByName: user.displayName || "",
+                            reportedByPhotoURL: user.photoURL || "",
+                            reportedUserUid: post.uid,
+                            reportedUserName: post.name,
+                            reportedUserPhotoURL: post.photoURL,
+                            reason,
+                            createdAt: Timestamp.now(),
+                          });
+                          alert('Denúncia enviada!');
+                        }}
+                        className="px-3 py-1 rounded bg-red-700 hover:bg-red-800 text-white font-semibold text-xs"
+                      >Denunciar</button>
+                    )}
                   </div>
                   {editingPostId === post.id && (
                     <div className="flex flex-col gap-2 mt-2">
@@ -402,6 +471,24 @@ export default function FeedPage() {
                         await deleteDoc(commentRef);
                       }}
                       onLike={() => toggleLikeComment(post.id, comment)}
+                      onReport={async (reason) => {
+                        if (comment.uid === user.uid) return; // Não pode denunciar o próprio comentário
+                        await sendReport({
+                          type: "comment",
+                          contentId: comment.id,
+                          contentText: comment.text,
+                          reportedByUid: user.uid,
+                          reportedByName: user.displayName || "",
+                          reportedByPhotoURL: user.photoURL || "",
+                          reportedUserUid: comment.uid,
+                          reportedUserName: comment.name,
+                          reportedUserPhotoURL: comment.photoURL,
+                          reason,
+                          createdAt: Timestamp.now(),
+                          postId: post.id, // Adiciona o postId ao report de comentário
+                        });
+                        alert('Denúncia enviada!');
+                      }}
                     />
                   ))}
                   <textarea

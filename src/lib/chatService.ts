@@ -1,4 +1,4 @@
-import { collection, addDoc, query, orderBy, onSnapshot, Timestamp, doc, setDoc, getDocs, updateDoc, where, getDocs as getDocsFn } from "firebase/firestore";
+import { collection, addDoc, query, orderBy, onSnapshot, Timestamp, doc, setDoc, getDocs, updateDoc, where, getDocs as getDocsFn, deleteDoc } from "firebase/firestore";
 import db from "@/lib/firestore";
 
 export type ChatMessage = {
@@ -70,4 +70,8 @@ export async function countUnreadMessages(uid: string): Promise<number> {
     }
   }
   return total;
+}
+
+export async function deleteMessage(chatId: string, messageId: string) {
+  await deleteDoc(doc(db, "chats", chatId, "messages", messageId));
 }

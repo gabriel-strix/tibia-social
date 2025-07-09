@@ -14,6 +14,7 @@ type CommentProps = {
   onUpdate: (id: string, newText: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onLike: () => void;
+  onReport?: (reason: string) => void;
 };
 
 export default function Comment({
@@ -26,7 +27,8 @@ export default function Comment({
   currentUserUid,
   onUpdate,
   onDelete,
-  onLike
+  onLike,
+  onReport
 }: CommentProps) {
   const router = useRouter();
   const isOwner = uid === currentUserUid;
@@ -57,6 +59,16 @@ export default function Comment({
         >
           {name}
         </strong>
+
+        {onReport && !isOwner && (
+          <button
+            onClick={() => {
+              const reason = prompt('Descreva o motivo da denúncia:');
+              if (reason) onReport(reason);
+            }}
+            className="ml-auto px-2 py-1 rounded bg-red-700 hover:bg-red-800 text-white text-xs font-semibold"
+          >Denunciar</button>
+        )}
       </div>
 
       {editing ? (
