@@ -17,6 +17,11 @@ import {
   setDoc,
   deleteDoc as deleteFollowDoc,
   getDoc,
+  QueryDocumentSnapshot,
+  DocumentData,
+  getDocs,
+  startAfter,
+  limit,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import db from "@/lib/firestore";
@@ -62,6 +67,9 @@ export default function FeedPage() {
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -317,6 +325,69 @@ export default function FeedPage() {
     }
   }
 
+  // Função para buscar posts paginados
+  async function fetchPosts(initial = false) {
+    if (!user) return;
+    setLoadingMore(true);
+    const uids = [...following, user.uid];
+    let postsQuery;
+    if (uids.length > 0) {
+      postsQuery = query(
+        collection(db, "posts"),
+        where("uid", "in", uids),
+        orderBy("createdAt", "desc"),
+        ...(lastVisible && !initial ? [startAfter(lastVisible)] : []),
+        limit(5)
+      );
+    } else {
+      postsQuery = query(
+        collection(db, "posts"),
+        where("uid", "==", user.uid),
+        orderBy("createdAt", "desc"),
+        ...(lastVisible && !initial ? [startAfter(lastVisible)] : []),
+        limit(5)
+      );
+    }
+    const snapshot = await getDocs(postsQuery);
+    const newPosts = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Post));
+    if (initial) {
+      setPosts(newPosts);
+    } else {
+      setPosts((prev) => {
+        const ids = new Set(prev.map((p) => p.id));
+        const merged = [...prev];
+        for (const post of newPosts) {
+          if (!ids.has(post.id)) merged.push(post);
+        }
+        return merged;
+      });
+    }
+    setLastVisible(snapshot.docs[snapshot.docs.length - 1] || null);
+    setHasMore(snapshot.docs.length === 5);
+    setLoadingMore(false);
+  }
+
+  // Carrega os primeiros posts e reseta ao mudar following/user
+  useEffect(() => {
+    setPosts([]);
+    setLastVisible(null);
+    setHasMore(true);
+    if (user) fetchPosts(true);
+    // eslint-disable-next-line
+  }, [user, following]);
+
+  // Infinite scroll: carrega mais posts ao chegar no fim
+  useEffect(() => {
+    function onScroll() {
+      const bottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
+      if (bottom && hasMore && !loadingMore) {
+        fetchPosts();
+      }
+    }
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [hasMore, loadingMore, user, following, lastVisible]);
+
   if (loading) return <p className="text-zinc-200">Carregando...</p>;
   if (!user) return null;
 
@@ -569,6 +640,8 @@ export default function FeedPage() {
               </div>
             );
           })}
+          {loadingMore && <p className="text-zinc-200 text-center py-4">Carregando mais posts...</p>}
+          {!hasMore && <p className="text-zinc-400 text-center py-4">Você chegou ao fim do feed.</p>}
         </div>
       </div>
       {/* Sidebar à direita fixa */}
