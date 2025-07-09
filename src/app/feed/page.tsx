@@ -114,9 +114,40 @@ export default function FeedPage() {
     };
   }, [posts]);
 
+  // Função utilitária para converter imagem para WebP
+  async function convertToWebP(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject('Canvas não suportado');
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (!blob) return reject('Falha ao converter para WebP');
+          const webpFile = new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
+          resolve(webpFile);
+        }, 'image/webp', 0.92);
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
   async function uploadImage(file: File, postId: string): Promise<string> {
-    const imageRef = ref(storage, `posts/${postId}/${file.name}`);
-    await uploadBytes(imageRef, file);
+    // Converte para WebP antes do upload
+    let fileToUpload = file;
+    if (!file.type.includes('webp')) {
+      try {
+        fileToUpload = await convertToWebP(file);
+      } catch (e) {
+        console.warn('Falha ao converter para WebP, enviando original:', e);
+      }
+    }
+    const imageRef = ref(storage, `posts/${postId}/${fileToUpload.name}`);
+    await uploadBytes(imageRef, fileToUpload);
     const url = await getDownloadURL(imageRef);
     return url;
   }
