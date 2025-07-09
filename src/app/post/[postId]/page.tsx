@@ -18,6 +18,7 @@ export default function PostPage() {
   const [commentText, setCommentText] = useState("");
   const [editingPost, setEditingPost] = useState(false);
   const [editingText, setEditingText] = useState("");
+  const [modalImage, setModalImage] = useState<string | null>(null);
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -134,7 +135,14 @@ export default function PostPage() {
             <span className="ml-auto text-xs text-zinc-400">{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span>
           </div>
           {post.imageURL && (
-            <img src={post.imageURL} alt="Imagem do post" className="w-full max-h-[400px] object-cover bg-zinc-800 border-b border-zinc-800 mb-4" />
+            <>
+              <img
+                src={post.imageURL}
+                alt="Imagem do post"
+                className="w-full max-h-[400px] object-cover bg-zinc-800 border-b border-zinc-800 cursor-pointer transition hover:brightness-75"
+                onClick={() => setModalImage(post.imageURL)}
+              />
+            </>
           )}
           {editingPost ? (
             <div className="flex flex-col gap-2 mt-2">
@@ -252,6 +260,11 @@ export default function PostPage() {
           >Comentar</button>
         </div>
       </div>
+      {modalImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setModalImage(null)}>
+          <img src={modalImage} alt="Imagem ampliada" className="max-h-[90vh] max-w-[90vw] rounded shadow-lg border-4 border-zinc-800" />
+        </div>
+      )}
     </div>
   );
 }

@@ -61,6 +61,7 @@ export default function FeedPage() {
   const [following, setFollowing] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [modalImage, setModalImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -371,11 +372,14 @@ export default function FeedPage() {
                 </div>
                 {/* Imagem do post */}
                 {post.imageURL && (
-                  <img
-                    src={post.imageURL}
-                    alt="Imagem do post"
-                    className="w-full max-h-[400px] object-cover bg-zinc-800 border-b border-zinc-800"
-                  />
+                  <>
+                    <img
+                      src={post.imageURL}
+                      alt="Imagem do post"
+                      className="w-full max-h-[400px] object-cover bg-zinc-800 border-b border-zinc-800 cursor-pointer transition hover:brightness-75"
+                      onClick={() => setModalImage(post.imageURL)}
+                    />
+                  </>
                 )}
                 {/* Texto do post */}
                 <div className="px-4 py-2">
@@ -522,6 +526,12 @@ export default function FeedPage() {
           <p className="text-zinc-400 text-sm">Em breve Funcionalidade de sugestões de jogadores pode ser implementada aqui.</p>
         </div>
       </aside>
+
+      {modalImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setModalImage(null)}>
+          <img src={modalImage} alt="Imagem ampliada" className="max-h-[90vh] max-w-[90vw] rounded shadow-lg border-4 border-zinc-800" />
+        </div>
+      )}
     </div>
   );
 }
