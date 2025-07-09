@@ -184,6 +184,32 @@ export default function FeedPage() {
 
   async function handleDelete(postId: string) {
     if (!confirm("Tem certeza que deseja excluir este post?")) return;
+    // Busca o post para pegar a URL da imagem
+    const postDoc = await getDoc(doc(db, "posts", postId));
+    const post = postDoc.exists() ? postDoc.data() as Post : null;
+    if (post && post.imageURL) {
+      try {
+        // Remove a imagem do Storage
+        const storage = getStorage();
+        // Extrai o caminho relativo do storage a partir da URL
+        const baseUrl = `https://firebasestorage.googleapis.com/v0/b/`;
+        const storageBucket = storage.app.options.storageBucket;
+        let filePath = '';
+        if (storageBucket && post.imageURL.startsWith(baseUrl + storageBucket)) {
+          // Extrai o caminho do arquivo a partir da URL
+          const urlParts = post.imageURL.split(`/${storageBucket}/o/`);
+          if (urlParts.length > 1) {
+            filePath = decodeURIComponent(urlParts[1].split('?')[0]);
+          }
+        }
+        if (filePath) {
+          const imageRef = ref(storage, filePath);
+          await import('firebase/storage').then(({ deleteObject }) => deleteObject(imageRef));
+        }
+      } catch (e) {
+        console.warn('Erro ao remover imagem do Storage:', e);
+      }
+    }
     await deleteDoc(doc(db, "posts", postId));
   }
 
@@ -408,7 +434,7 @@ export default function FeedPage() {
                       src={post.imageURL}
                       alt="Imagem do post"
                       className="w-full max-h-[400px] object-cover bg-zinc-800 border-b border-zinc-800 cursor-pointer transition hover:brightness-75"
-                      onClick={() => setModalImage(post.imageURL)}
+                      onClick={() => setModalImage(post.imageURL || null)}
                     />
                   </>
                 )}
