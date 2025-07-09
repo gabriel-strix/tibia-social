@@ -1,0 +1,21 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAyZtPq0U8n9LvvGwq8uBIgMJhZW0ymQCs",
+  authDomain: "tibiasocial-d0fc7.firebaseapp.com",
+  projectId: "tibiasocial-d0fc7",
+  storageBucket: "tibiasocial-d0fc7.firebasestorage.app",
+  messagingSenderId: "956560112736",
+  appId: "1:956560112736:web:45606aec8067c0f3449705",
+  measurementId: "G-3RVPG9HMZL"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);

@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Scrollbar customizada estilo Instagram/dark */
+.feed-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+.feed-scrollbar::-webkit-scrollbar-thumb {
+  background: #23272e;
+  border-radius: 8px;
+  border: 2px solid #18181b;
+}
+.feed-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #3b3b3b;
+}
+.feed-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #23272e #18181b;
+}

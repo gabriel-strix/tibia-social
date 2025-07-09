@@ -1,0 +1,29 @@
+Mensagens diretas (chat entre usuários):
+Permite que jogadores conversem privadamente, troquem dicas ou combinem hunts.
+
+Sistema de notificações:
+Notifique o usuário quando receber um novo seguidor, comentário, curtida ou mensagem.
+
+Busca avançada de jogadores/personagens:
+Permite procurar usuários por nome, mundo, vocação, level, etc.
+
+Ranking e conquistas:
+Exiba rankings de usuários mais seguidos, mais ativos, ou com personagens de maior level.
+
+Integração com guilds:
+Permita que usuários criem, entrem e interajam em guilds (comunidades dentro da rede social).
+
+Feed de atividades:
+Mostre atividades recentes dos amigos/seguidos (ex: “Fulano adicionou um novo personagem”, “Ciclano postou uma screenshot”).
+
+Upload de imagens em posts:
+Já existe upload de imagem, mas pode ser expandido para álbuns ou galerias de screenshots.
+
+Página de eventos:
+Permita criar e divulgar eventos do Tibia (war, hunts, quests em grupo).
+
+Sistema de amizade (além de seguir):
+Permite aceitar/rejeitar pedidos de amizade, criando laços mais próximos.
+
+Painel de administração/moderação:
+Para gerenciar denúncias, banir usuários tóxicos, etc.
