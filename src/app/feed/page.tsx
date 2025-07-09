@@ -299,7 +299,7 @@ export default function FeedPage() {
       {/* Feed principal */}
       <div className="flex-1 max-w-2xl w-full" style={{ maxHeight: 'calc(100vh - 96px)' }}>
         {/* Formulário de novo post */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow flex flex-col gap-3">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow flex flex-col gap-3 mb-8">
           <div className="flex items-center gap-3 mb-2">
             <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full border border-zinc-700" />
             <span className="text-zinc-100 font-semibold">{user.displayName}</span>
@@ -364,7 +364,7 @@ export default function FeedPage() {
         </div>
 
         {/* Lista de posts */}
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-10">
           {posts.map((post) => {
             const isOwner = post.uid === user.uid;
             const liked = post.likes?.includes(user.uid) ?? false;
