@@ -1,3 +1,4 @@
+"use client";
 import FollowersListPage from "@/components/FollowersListPage";
 import { useParams } from "next/navigation";
 
