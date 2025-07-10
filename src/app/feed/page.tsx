@@ -29,6 +29,7 @@ import Comment from "@/components/Comment";
 import Link from "next/link";
 import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
+import InstagramVideo from "@/components/InstagramVideo";
 
 type Post = {
   id: string;
@@ -565,12 +566,7 @@ export default function FeedPage() {
                   </>
                 )}
                 {post.videoURL && (
-                  <video
-                    src={post.videoURL}
-                    controls
-                    className="w-full max-h-[400px] bg-zinc-800 border-b border-zinc-800 rounded"
-                    style={{ background: '#18181b' }}
-                  />
+                  <InstagramVideo src={post.videoURL} />
                 )}
                 {/* Texto do post */}
                 <div className="px-4 py-2">
