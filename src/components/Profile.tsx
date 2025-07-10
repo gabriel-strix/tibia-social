@@ -10,7 +10,7 @@ import { TIBIA_WORLDS } from "@/lib/tibiaWorlds";
 
 export default function Profile() {
   const { user, loading, logout } = useAuth();
-  const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string } | null>(null);
+  const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string; characters?: Character[] } | null>(null);
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
   const [characters, setCharacters] = useState<Character[]>(profile?.characters || []);
