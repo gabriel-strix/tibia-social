@@ -19,8 +19,13 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
   const [showOptions, setShowOptions] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioPreview, setAudioPreview] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const chatId = [user?.uid, otherUid].sort().join("_");
 
   useEffect(() => {
@@ -59,16 +64,53 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
     });
   }
 
+  // Gravação de áudio
+  async function startRecording() {
+    setAudioBlob(null);
+    setAudioPreview(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new window.MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(blob);
+        setAudioPreview(URL.createObjectURL(blob));
+      };
+      mediaRecorder.start();
+      setRecording(true);
+    } catch (err) {
+      alert('Não foi possível acessar o microfone.');
+    }
+  }
+
+  function stopRecording() {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
+  }
+
+  function cancelAudio() {
+    setAudioBlob(null);
+    setAudioPreview(null);
+    setRecording(false);
+  }
+
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if ((!text.trim() && !mediaFile) || !user) return;
+    if ((!text.trim() && !mediaFile && !audioBlob) || !user) return;
     let fileToSend = mediaFile;
     if (mediaFile && mediaFile.type.startsWith('image/') && !mediaFile.type.includes('webp')) {
       try {
         fileToSend = await convertToWebP(mediaFile);
-      } catch (e) {
-        // fallback para original
-      }
+      } catch (e) {}
+    }
+    // Se for áudio, cria um File
+    if (audioBlob) {
+      fileToSend = new File([audioBlob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });
     }
     await sendMessage(user.uid, otherUid, text.trim(), fileToSend || undefined);
     // Notifica o destinatário
@@ -86,6 +128,8 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
     setText("");
     setMediaFile(null);
     setMediaPreview(null);
+    setAudioBlob(null);
+    setAudioPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -131,13 +175,16 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {messages.map(msg => (
           <div key={msg.id} className={`flex ${msg.from === user?.uid ? 'justify-end' : 'justify-start'} group`}>
-            <div className={`px-3 py-2 rounded-lg max-w-xs text-sm relative ${msg.from === user?.uid ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-100'}`}>
-              {/* Exibe imagem/vídeo se houver */}
+            <div className={`px-3 py-2 rounded-lg max-w-xs md:max-w-md lg:max-w-lg text-sm relative ${msg.from === user?.uid ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-100'}`}>
+              {/* Exibe imagem/vídeo/áudio se houver */}
               {msg.imageURL && (
-                <img src={msg.imageURL} alt="imagem" className="max-h-48 rounded border border-zinc-700 object-contain mb-2" />
+                <img src={msg.imageURL} alt="imagem" className="max-h-48 max-w-full rounded border border-zinc-700 object-contain mb-2" />
               )}
               {msg.videoURL && (
-                <video src={msg.videoURL} controls className="max-h-48 rounded border border-zinc-700 object-contain mb-2" />
+                <video src={msg.videoURL} controls className="max-h-48 w-full min-w-[220px] max-w-[340px] md:max-w-[420px] rounded border border-zinc-700 object-contain mb-2 bg-black" style={{background:'#18181b'}} />
+              )}
+              {msg.audioURL && (
+                <audio src={msg.audioURL} controls className="w-full min-w-[220px] max-w-[340px] md:max-w-[420px] mb-2" />
               )}
               {msg.text}
               <div className="text-xs text-zinc-400 mt-1 text-right">{msg.createdAt.toDate().toLocaleTimeString()}</div>
@@ -147,7 +194,7 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
                   title="Apagar mensagem"
                   onClick={async () => {
                     if (window.confirm('Deseja apagar esta mensagem?')) {
-                      await deleteMessage(chatId, msg.id!, msg.imageURL, msg.videoURL);
+                      await deleteMessage(chatId, msg.id!, msg.imageURL, msg.videoURL, msg.audioURL);
                     }
                   }}
                 >
@@ -207,6 +254,24 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
         <label htmlFor="chatFileInput" className="cursor-pointer inline-block bg-zinc-700 text-white px-3 py-2 rounded hover:bg-zinc-600 mr-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.25 0V6a7.5 7.5 0 10-15 0v4.5m16.5 0a2.25 2.25 0 01-2.25 2.25H4.5A2.25 2.25 0 012.25 10.5m19.5 0v7.125c0 1.24-1.01 2.25-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25V10.5" /></svg>
         </label>
+        {/* Botão de gravação de áudio */}
+        {!recording && !audioBlob && (
+          <button type="button" onClick={startRecording} className="bg-zinc-700 text-white px-3 py-2 rounded hover:bg-zinc-600 mr-2" title="Gravar áudio">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75v1.5m0 0a6 6 0 006-6h-1.5a4.5 4.5 0 01-9 0H6a6 6 0 006 6zm0-13.5a3 3 0 00-3 3v4.5a3 3 0 006 0V6a3 3 0 00-3-3z" /></svg>
+          </button>
+        )}
+        {recording && (
+          <button type="button" onClick={stopRecording} className="bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 mr-2 animate-pulse" title="Parar gravação">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75v10.5h10.5V6.75H6.75z" /></svg>
+            Gravando...
+          </button>
+        )}
+        {audioPreview && !recording && (
+          <div className="flex items-center gap-1 mr-2">
+            <audio src={audioPreview} controls className="max-w-[120px]" />
+            <button type="button" onClick={cancelAudio} className="text-red-400 hover:text-red-600 text-xl">&times;</button>
+          </div>
+        )}
         {mediaPreview && (
           <div className="relative">
             {mediaFile?.type.startsWith('image/') ? (

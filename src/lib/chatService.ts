@@ -11,10 +11,11 @@ export type ChatMessage = {
   readBy?: string[];
   imageURL?: string;
   videoURL?: string;
+  audioURL?: string; // Novo campo para áudio
 };
 
-// Função para upload de imagem (WebP) ou vídeo (até 90s)
-async function uploadChatMedia(file: File, chatId: string, msgId: string): Promise<{ imageURL?: string; videoURL?: string }> {
+// Função para upload de imagem (WebP), vídeo ou áudio
+async function uploadChatMedia(file: File, chatId: string, msgId: string): Promise<{ imageURL?: string; videoURL?: string; audioURL?: string }> {
   const storage = getStorage();
   if (file.type.startsWith('image/')) {
     // Converte para WebP
@@ -48,6 +49,11 @@ async function uploadChatMedia(file: File, chatId: string, msgId: string): Promi
     await uploadBytes(videoRef, file);
     const url = await getDownloadURL(videoRef);
     return { videoURL: url };
+  } else if (file.type.startsWith('audio/')) {
+    const audioRef = ref(storage, `chats/${chatId}/messages/${msgId}/${file.name}`);
+    await uploadBytes(audioRef, file);
+    const url = await getDownloadURL(audioRef);
+    return { audioURL: url };
   }
   return {};
 }
@@ -64,6 +70,7 @@ export async function sendMessage(from: string, to: string, text: string, file?:
     readBy: [from],
     imageURL: "",
     videoURL: "",
+    audioURL: "",
   });
   if (file) {
     const media = await uploadChatMedia(file, chatId, msgDoc.id);
@@ -121,7 +128,7 @@ export async function countUnreadMessages(uid: string): Promise<number> {
   return total;
 }
 
-export async function deleteMessage(chatId: string, messageId: string, imageURL?: string, videoURL?: string) {
+export async function deleteMessage(chatId: string, messageId: string, imageURL?: string, videoURL?: string, audioURL?: string) {
   // Remove mídia do Storage se existir
   const storage = getStorage();
   if (imageURL) {
@@ -155,6 +162,23 @@ export async function deleteMessage(chatId: string, messageId: string, imageURL?
       if (filePath) {
         const videoRef = ref(storage, filePath);
         await deleteObject(videoRef);
+      }
+    } catch {}
+  }
+  if (audioURL) {
+    try {
+      const baseUrl = `https://firebasestorage.googleapis.com/v0/b/`;
+      const storageBucket = storage.app.options.storageBucket;
+      let filePath = '';
+      if (storageBucket && audioURL.startsWith(baseUrl + storageBucket)) {
+        const urlParts = audioURL.split(`/${storageBucket}/o/`);
+        if (urlParts.length > 1) {
+          filePath = decodeURIComponent(urlParts[1].split('?')[0]);
+        }
+      }
+      if (filePath) {
+        const audioRef = ref(storage, filePath);
+        await deleteObject(audioRef);
       }
     } catch {}
   }
