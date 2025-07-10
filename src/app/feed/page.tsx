@@ -30,6 +30,8 @@ import Link from "next/link";
 import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
 import InstagramVideo from "@/components/InstagramVideo";
+import LikeAvatars from "@/components/LikeAvatars";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 
 type Post = {
   id: string;
@@ -72,6 +74,7 @@ export default function FeedPage() {
   const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showCommentsMap, setShowCommentsMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!loading && !user) {
@@ -571,12 +574,21 @@ export default function FeedPage() {
                 {/* Texto do post */}
                 <div className="px-4 py-2">
                   <p className="text-zinc-200 whitespace-pre-line mb-2">{post.text}</p>
-                  <div className="flex items-center gap-3 mt-2">
+                  <LikeAvatars uids={post.likes || []} currentUserUid={user.uid} />
+                  <div className="flex items-center gap-4 mt-2">
                     <button
                       onClick={() => toggleLike(post)}
-                      className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${liked ? 'bg-pink-700 text-white' : 'bg-zinc-700 text-zinc-200 hover:bg-zinc-600'}`}
+                      className={`flex items-center gap-1 px-3 py-1 rounded text-sm font-semibold transition-colors ${liked ? 'bg-pink-700 text-white' : 'bg-zinc-700 text-zinc-200 hover:bg-zinc-600'}`}
                     >
-                      {liked ? "💔 Descurtir" : "❤️ Curtir"} ({post.likes?.length || 0})
+                      {liked ? "💔" : "❤️"}
+                      <span>{post.likes?.length || 0}</span>
+                    </button>
+                    <button
+                      onClick={() => setShowCommentsMap((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}
+                      className="flex items-center gap-1 px-3 py-1 rounded text-sm font-semibold bg-zinc-700 text-zinc-200 hover:bg-zinc-600"
+                    >
+                      <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                      <span>{comments.length}</span>
                     </button>
                     {isOwner && editingPostId !== post.id && (
                       <>
@@ -640,62 +652,64 @@ export default function FeedPage() {
                   )}
                 </div>
                 {/* Comentários */}
-                <div className="px-4 pb-4">
-                  <strong className="text-zinc-100">Comentários</strong>
-                  {comments.length === 0 && <p className="text-zinc-400">Sem comentários ainda.</p>}
-                  {comments.map((comment) => (
-                    <Comment
-                      key={comment.id}
-                      id={comment.id}
-                      uid={comment.uid}
-                      name={comment.name}
-                      photoURL={comment.photoURL}
-                      text={comment.text}
-                      likes={comment.likes}
-                      currentUserUid={user.uid}
-                      onUpdate={async (id, newText) => {
-                        const commentRef = doc(db, "posts", post.id, "comments", id);
-                        await updateDoc(commentRef, { text: newText });
-                      }}
-                      onDelete={async (id) => {
-                        const commentRef = doc(db, "posts", post.id, "comments", id);
-                        await deleteDoc(commentRef);
-                      }}
-                      onLike={() => toggleLikeComment(post.id, comment)}
-                      onReport={async (reason) => {
-                        if (comment.uid === user.uid) return; // Não pode denunciar o próprio comentário
-                        await sendReport({
-                          type: "comment",
-                          contentId: comment.id,
-                          contentText: comment.text,
-                          reportedByUid: user.uid,
-                          reportedByName: user.displayName || "",
-                          reportedByPhotoURL: user.photoURL || "",
-                          reportedUserUid: comment.uid,
-                          reportedUserName: comment.name,
-                          reportedUserPhotoURL: comment.photoURL,
-                          reason,
-                          createdAt: Timestamp.now(),
-                          postId: post.id, // Adiciona o postId ao report de comentário
-                        });
-                        alert('Denúncia enviada!');
-                      }}
+                {showCommentsMap[post.id] && (
+                  <div className="px-4 pb-4">
+                    <strong className="text-zinc-100">Comentários</strong>
+                    {comments.length === 0 && <p className="text-zinc-400">Sem comentários ainda.</p>}
+                    {comments.map((comment) => (
+                      <Comment
+                        key={comment.id}
+                        id={comment.id}
+                        uid={comment.uid}
+                        name={comment.name}
+                        photoURL={comment.photoURL}
+                        text={comment.text}
+                        likes={comment.likes}
+                        currentUserUid={user.uid}
+                        onUpdate={async (id, newText) => {
+                          const commentRef = doc(db, "posts", post.id, "comments", id);
+                          await updateDoc(commentRef, { text: newText });
+                        }}
+                        onDelete={async (id) => {
+                          const commentRef = doc(db, "posts", post.id, "comments", id);
+                          await deleteDoc(commentRef);
+                        }}
+                        onLike={() => toggleLikeComment(post.id, comment)}
+                        onReport={async (reason) => {
+                          if (comment.uid === user.uid) return; // Não pode denunciar o próprio comentário
+                          await sendReport({
+                            type: "comment",
+                            contentId: comment.id,
+                            contentText: comment.text,
+                            reportedByUid: user.uid,
+                            reportedByName: user.displayName || "",
+                            reportedByPhotoURL: user.photoURL || "",
+                            reportedUserUid: comment.uid,
+                            reportedUserName: comment.name,
+                            reportedUserPhotoURL: comment.photoURL,
+                            reason,
+                            createdAt: Timestamp.now(),
+                            postId: post.id, // Adiciona o postId ao report de comentário
+                          });
+                          alert('Denúncia enviada!');
+                        }}
+                      />
+                    ))}
+                    <textarea
+                      placeholder="Escreva um comentário..."
+                      value={commentText}
+                      onChange={(e) =>
+                        setCommentTextMap((prev) => ({ ...prev, [post.id]: e.target.value }))
+                      }
+                      rows={2}
+                      className="w-full p-2 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mt-2"
                     />
-                  ))}
-                  <textarea
-                    placeholder="Escreva um comentário..."
-                    value={commentText}
-                    onChange={(e) =>
-                      setCommentTextMap((prev) => ({ ...prev, [post.id]: e.target.value }))
-                    }
-                    rows={2}
-                    className="w-full p-2 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mt-2"
-                  />
-                  <button
-                    onClick={() => handleAddComment(post.id)}
-                    className="mt-2 px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                  >Comentar</button>
-                </div>
+                    <button
+                      onClick={() => handleAddComment(post.id)}
+                      className="mt-2 px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                    >Comentar</button>
+                  </div>
+                )}
               </div>
             );
           })}
