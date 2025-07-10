@@ -1,16 +1,18 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import ChatWindow from "@/components/ChatWindow";
 import { doc, getDoc } from "firebase/firestore";
 import db from "@/lib/firestore";
 
-export default function ChatWithUserPage({ params }: { params: { uid: string } }) {
-  const uid = params.uid;
+export default function ChatWithUserPage() {
+  const params = useParams<{ uid?: string }>();
+  const uid = params?.uid || "";
   const [userData, setUserData] = useState<{ name: string; photoURL: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
+    if (!uid) return;
     async function fetchUser() {
       const userDoc = await getDoc(doc(db, "users", uid));
       if (userDoc.exists()) {

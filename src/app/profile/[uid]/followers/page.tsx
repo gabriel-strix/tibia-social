@@ -1,5 +1,8 @@
 import FollowersListPage from "@/components/FollowersListPage";
+import { useParams } from "next/navigation";
 
-export default function ProfileFollowersPage({ params }) {
-  return <FollowersListPage profileUid={params.uid} type="followers" />;
+export default function ProfileFollowersPage() {
+  const params = useParams<{ uid?: string }>();
+  const uid = params?.uid || "";
+  return <FollowersListPage profileUid={uid} type="followers" />;
 }
