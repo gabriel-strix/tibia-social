@@ -16,7 +16,10 @@ export default function NotificationsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     const q = query(collection(db, "notifications", user.uid, "items"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       // Unifica notificações de mensagem recebida por usuário
@@ -40,7 +43,7 @@ export default function NotificationsPage() {
       setNotifications(result);
     });
     return () => unsub();
-  }, [user]);
+  }, [user, router]);
 
   useEffect(() => {
     if (!user) return;

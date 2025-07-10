@@ -7,9 +7,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Character, addCharacter, updateCharacter } from "@/lib/characterService";
 import FollowersFollowing from "@/components/FollowersFollowing";
 import { TIBIA_WORLDS } from "@/lib/tibiaWorlds";
+import { useRouter } from "next/navigation";
 
 export default function Profile() {
   const { user, loading, logout } = useAuth();
+  const router = useRouter();
   const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string; characters?: Character[] } | null>(null);
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -315,7 +317,10 @@ export default function Profile() {
       <hr className="my-6 border-zinc-700" />
 
       <button
-        onClick={() => logout()}
+        onClick={async () => {
+          await logout();
+          router.push("/login");
+        }}
         className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded font-semibold shadow transition-colors"
       >
         Logout
