@@ -39,6 +39,7 @@ type Post = {
   createdAt: Timestamp;
   likes?: string[];
   imageURL?: string;
+  videoURL?: string;
 };
 
 type CommentType = {
@@ -57,7 +58,7 @@ export default function FeedPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [text, setText] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
@@ -65,7 +66,7 @@ export default function FeedPage() {
   const [commentTextMap, setCommentTextMap] = useState<Record<string, string>>({});
   const [following, setFollowing] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -144,27 +145,37 @@ export default function FeedPage() {
     });
   }
 
-  async function uploadImage(file: File, postId: string): Promise<string> {
-    // Converte para WebP antes do upload
-    let fileToUpload = file;
-    if (!file.type.includes('webp')) {
-      try {
-        fileToUpload = await convertToWebP(file);
-      } catch (e) {
-        console.warn('Falha ao converter para WebP, enviando original:', e);
+  // Função para upload de imagem ou vídeo
+  async function uploadMedia(file: File, postId: string): Promise<{ imageURL?: string; videoURL?: string }> {
+    if (file.type.startsWith('image/')) {
+      // Imagem: converter para WebP
+      let fileToUpload = file;
+      if (!file.type.includes('webp')) {
+        try {
+          fileToUpload = await convertToWebP(file);
+        } catch (e) {
+          console.warn('Falha ao converter para WebP, enviando original:', e);
+        }
       }
+      const imageRef = ref(storage, `posts/${postId}/${fileToUpload.name}`);
+      await uploadBytes(imageRef, fileToUpload);
+      const url = await getDownloadURL(imageRef);
+      return { imageURL: url };
+    } else if (file.type.startsWith('video/')) {
+      // Vídeo: upload direto
+      const videoRef = ref(storage, `posts/${postId}/${file.name}`);
+      await uploadBytes(videoRef, file);
+      const url = await getDownloadURL(videoRef);
+      return { videoURL: url };
     }
-    const imageRef = ref(storage, `posts/${postId}/${fileToUpload.name}`);
-    await uploadBytes(imageRef, fileToUpload);
-    const url = await getDownloadURL(imageRef);
-    return url;
+    return {};
   }
 
   async function handlePost() {
-    if (!text.trim() && !imageFile) return;
+    if (!text.trim() && !mediaFile) return;
     setUploading(true);
     try {
-      // Cria o post sem imagem pra pegar o ID
+      // Cria o post sem mídia pra pegar o ID
       const docRef = await addDoc(collection(db, "posts"), {
         uid: user?.uid,
         name: user?.displayName || "",
@@ -173,18 +184,19 @@ export default function FeedPage() {
         createdAt: Timestamp.now(),
         likes: [],
         imageURL: "",
+        videoURL: "",
       });
-      if (imageFile) {
+      if (mediaFile) {
         try {
-          const url = await uploadImage(imageFile, docRef.id);
-          await updateDoc(doc(db, "posts", docRef.id), { imageURL: url });
+          const result = await uploadMedia(mediaFile, docRef.id);
+          await updateDoc(doc(db, "posts", docRef.id), result);
         } catch (error) {
-          console.error("Erro ao fazer upload/atualizar imagem:", error);
+          console.error("Erro ao fazer upload/atualizar mídia:", error);
         }
       }
       setText("");
-      setImageFile(null);
-      setImagePreview(null);
+      setMediaFile(null);
+      setMediaPreview(null);
     } finally {
       setUploading(false);
     }
@@ -192,19 +204,17 @@ export default function FeedPage() {
 
   async function handleDelete(postId: string) {
     if (!confirm("Tem certeza que deseja excluir este post?")) return;
-    // Busca o post para pegar a URL da imagem
+    // Busca o post para pegar a URL da imagem/vídeo
     const postDoc = await getDoc(doc(db, "posts", postId));
     const post = postDoc.exists() ? postDoc.data() as Post : null;
+    // Remove imagem do Storage se existir
     if (post && post.imageURL) {
       try {
-        // Remove a imagem do Storage
         const storage = getStorage();
-        // Extrai o caminho relativo do storage a partir da URL
         const baseUrl = `https://firebasestorage.googleapis.com/v0/b/`;
         const storageBucket = storage.app.options.storageBucket;
         let filePath = '';
         if (storageBucket && post.imageURL.startsWith(baseUrl + storageBucket)) {
-          // Extrai o caminho do arquivo a partir da URL
           const urlParts = post.imageURL.split(`/${storageBucket}/o/`);
           if (urlParts.length > 1) {
             filePath = decodeURIComponent(urlParts[1].split('?')[0]);
@@ -216,6 +226,27 @@ export default function FeedPage() {
         }
       } catch (e) {
         console.warn('Erro ao remover imagem do Storage:', e);
+      }
+    }
+    // Remove vídeo do Storage se existir
+    if (post && post.videoURL) {
+      try {
+        const storage = getStorage();
+        const baseUrl = `https://firebasestorage.googleapis.com/v0/b/`;
+        const storageBucket = storage.app.options.storageBucket;
+        let filePath = '';
+        if (storageBucket && post.videoURL.startsWith(baseUrl + storageBucket)) {
+          const urlParts = post.videoURL.split(`/${storageBucket}/o/`);
+          if (urlParts.length > 1) {
+            filePath = decodeURIComponent(urlParts[1].split('?')[0]);
+          }
+        }
+        if (filePath) {
+          const videoRef = ref(storage, filePath);
+          await import('firebase/storage').then(({ deleteObject }) => deleteObject(videoRef));
+        }
+      } catch (e) {
+        console.warn('Erro ao remover vídeo do Storage:', e);
       }
     }
     await deleteDoc(doc(db, "posts", postId));
@@ -405,14 +436,34 @@ export default function FeedPage() {
             <input
               id="fileInput"
               type="file"
-              accept="image/*"
-              onChange={(e) => {
+              accept="image/*,video/*"
+              onChange={async (e) => {
                 if (e.target.files && e.target.files[0]) {
-                  setImageFile(e.target.files[0]);
-                  setImagePreview(URL.createObjectURL(e.target.files[0]));
+                  const file = e.target.files[0];
+                  if (file.type.startsWith('video/')) {
+                    // Checa duração do vídeo antes de permitir
+                    const url = URL.createObjectURL(file);
+                    const video = document.createElement('video');
+                    video.preload = 'metadata';
+                    video.src = url;
+                    video.onloadedmetadata = () => {
+                      window.URL.revokeObjectURL(url);
+                      if (video.duration > 90) {
+                        alert('O vídeo deve ter no máximo 1 minuto e 30 segundos.');
+                        setMediaFile(null);
+                        setMediaPreview(null);
+                      } else {
+                        setMediaFile(file);
+                        setMediaPreview(url);
+                      }
+                    };
+                    return;
+                  }
+                  setMediaFile(file);
+                  setMediaPreview(URL.createObjectURL(file));
                 } else {
-                  setImageFile(null);
-                  setImagePreview(null);
+                  setMediaFile(null);
+                  setMediaPreview(null);
                 }
               }}
               className="hidden"
@@ -425,20 +476,24 @@ export default function FeedPage() {
               Selecionar arquivo
             </label>
 
-            {imageFile && (
+            {mediaFile && (
               <p className="mt-2 text-sm text-zinc-300">
-                Arquivo selecionado: {imageFile.name}
+                Arquivo selecionado: {mediaFile.name}
               </p>
             )}
           </div>
-          {imagePreview && (
+          {mediaPreview && (
             <div className="relative mt-2">
-              <img src={imagePreview} alt="Preview" className="max-h-48 rounded border border-zinc-700 object-contain mx-auto" />
+              {mediaFile?.type.startsWith('image/') ? (
+                <img src={mediaPreview} alt="Preview" className="max-h-48 rounded border border-zinc-700 object-contain mx-auto" />
+              ) : (
+                <video src={mediaPreview} controls className="max-h-48 rounded border border-zinc-700 object-contain mx-auto" />
+              )}
               <button
                 type="button"
                 className="absolute top-2 right-2 bg-zinc-800 bg-opacity-80 rounded-full p-1 text-zinc-200 hover:text-red-400"
-                onClick={() => { setImageFile(null); setImagePreview(null); }}
-                aria-label="Remover imagem"
+                onClick={() => { setMediaFile(null); setMediaPreview(null); }}
+                aria-label="Remover mídia"
               >
                 &times;
               </button>
@@ -453,7 +508,7 @@ export default function FeedPage() {
           />
           <button
             onClick={handlePost}
-            disabled={uploading || (!text.trim() && !imageFile)}
+            disabled={uploading || (!text.trim() && !mediaFile)}
             className={`mt-2 px-6 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors w-full ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             {uploading ? 'Publicando...' : 'Publicar'}
@@ -508,6 +563,14 @@ export default function FeedPage() {
                       onClick={() => setModalImage(post.imageURL || null)}
                     />
                   </>
+                )}
+                {post.videoURL && (
+                  <video
+                    src={post.videoURL}
+                    controls
+                    className="w-full max-h-[400px] bg-zinc-800 border-b border-zinc-800 rounded"
+                    style={{ background: '#18181b' }}
+                  />
                 )}
                 {/* Texto do post */}
                 <div className="px-4 py-2">
