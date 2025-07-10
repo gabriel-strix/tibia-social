@@ -29,8 +29,8 @@ export default function Navbar() {
     router.push(`/profile/${u.uid}`);
   }
 
-  // Não exibe a navbar na tela de login
-  if (pathname === "/login") return null;
+  // Não exibe a navbar na tela de login ou se não estiver logado
+  if (pathname === "/login" || !user) return null;
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-zinc-900 border-b border-zinc-800 h-[80px] flex items-center px-4 md:px-8 justify-between shadow-sm">
