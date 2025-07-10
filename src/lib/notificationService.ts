@@ -4,7 +4,7 @@ import db from "@/lib/firestore";
 export type NotificationType = "comment" | "like" | "follow" | "message";
 
 export interface Notification {
-  id: string; // Identificador único da notificação
+  id?: string; // Identificador único da notificação, opcional na criação
   toUid: string;
   fromUid: string;
   fromName: string;
