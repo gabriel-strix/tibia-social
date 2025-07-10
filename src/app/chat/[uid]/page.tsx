@@ -7,8 +7,14 @@ import ChatWindow from "@/components/ChatWindow";
 import { doc, getDoc } from "firebase/firestore";
 import db from "@/lib/firestore";
 
-export default function ChatWithUserPage({ params }: { params: Promise<{ uid: string }> }) {
-  const { uid } = use(params);
+interface PageProps {
+  params: {
+    uid: string;
+  };
+}
+
+export default function ChatWithUserPage({ params }: PageProps) {
+  const uid = params.uid;
   const [userData, setUserData] = useState<{ name: string; photoURL: string } | null>(null);
   const router = useRouter();
 

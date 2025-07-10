@@ -1,5 +1,11 @@
 import FollowersListPage from "@/components/FollowersListPage";
 
-export default function ProfileFollowersPage({ params }) {
+interface PageProps {
+  params: {
+    uid: string;
+  };
+}
+
+export default function ProfileFollowersPage({ params }: PageProps) {
   return <FollowersListPage profileUid={params.uid} type="followers" />;
 }
