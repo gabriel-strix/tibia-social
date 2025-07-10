@@ -27,3 +27,6 @@ Permite aceitar/rejeitar pedidos de amizade, criando laços mais próximos.
 
 Painel de administração/moderação:
 Para gerenciar denúncias, banir usuários tóxicos, etc.
+
+Bloquear usuários
+
