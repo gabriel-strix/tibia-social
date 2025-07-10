@@ -20,7 +20,7 @@ export default function Home() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 bg-zinc-900 rounded-lg shadow-lg max-w-md mx-auto mt-16">
         <img src="/logo.png" alt="Tibia Social Logo" className="w-32 h-auto mb-4" />
-        <h1 className="text-2xl font-bold mb-6 text-zinc-100">Login Tibia Social</h1>
+        <h1 className="text-2xl font-bold mb-6 text-zinc-100">Acesse ou Cadastre-se:</h1>
         <button
           onClick={() => login()}
           className="px-6 py-3 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg shadow transition-colors"
