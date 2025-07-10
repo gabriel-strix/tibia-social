@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Comment from "@/components/Comment";
 import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
+import InstagramVideo from "@/components/InstagramVideo";
 
 // Corrige obtenção do postId para Next.js 14+ e checagem de user
 export default function PostPage() {
@@ -130,8 +131,12 @@ export default function PostPage() {
       <div className="w-full max-w-xl flex flex-col gap-8 mt-4">
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
           <div className="flex items-center gap-3 mb-2">
-            <img src={post.photoURL || '/default-avatar.png'} alt={post.name} className="w-10 h-10 rounded-full border border-zinc-700" />
-            <span className="text-zinc-100 font-semibold">{post.name}</span>
+            <a href={`/profile/${post.uid}`}>
+              <img src={post.photoURL || '/default-avatar.png'} alt={post.name} className="w-10 h-10 rounded-full border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition" />
+            </a>
+            <a href={`/profile/${post.uid}`} className="text-zinc-100 font-semibold hover:underline">
+              {post.name}
+            </a>
             <span className="ml-auto text-xs text-zinc-400">{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span>
           </div>
           {post.imageURL && (
@@ -143,6 +148,9 @@ export default function PostPage() {
                 onClick={() => setModalImage(post.imageURL)}
               />
             </>
+          )}
+          {post.videoURL && (
+            <InstagramVideo src={post.videoURL} />
           )}
           {editingPost ? (
             <div className="flex flex-col gap-2 mt-2">

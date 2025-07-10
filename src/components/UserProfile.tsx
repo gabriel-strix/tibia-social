@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Character, addCharacter, updateCharacter, deleteCharacter } from "@/lib/characterService";
 import FollowersFollowing from "@/components/FollowersFollowing";
 import { TIBIA_WORLDS } from "@/lib/tibiaWorlds";
+import UserPostsGrid from "@/components/UserPostsGrid";
 
 interface UserProfileProps {
   uid: string;
@@ -253,6 +254,12 @@ export default function UserProfile({ uid }: UserProfileProps) {
             )}
           </div>
         )}
+      </div>
+
+      {/* Grid de posts estilo Instagram */}
+      <div className="w-full max-w-3xl">
+        <h2 className="text-xl font-bold mb-4 text-zinc-100">Posts</h2>
+        <UserPostsGrid uid={uid} />
       </div>
     </div>
   );

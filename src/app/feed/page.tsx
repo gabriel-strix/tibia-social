@@ -176,7 +176,11 @@ export default function FeedPage() {
   }
 
   async function handlePost() {
-    if (!text.trim() && !mediaFile) return;
+    // Agora exige obrigatoriamente um arquivo de mídia
+    if (!mediaFile) {
+      alert("É obrigatório enviar uma imagem ou vídeo para publicar um post.");
+      return;
+    }
     setUploading(true);
     try {
       // Cria o post sem mídia pra pegar o ID
@@ -201,9 +205,10 @@ export default function FeedPage() {
       setText("");
       setMediaFile(null);
       setMediaPreview(null);
-    } finally {
-      setUploading(false);
+    } catch (error) {
+      console.error("Erro ao criar post:", error);
     }
+    setUploading(false);
   }
 
   async function handleDelete(postId: string) {
@@ -534,20 +539,18 @@ export default function FeedPage() {
               >
                 {/* Header do post */}
                 <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-                  <img
-                    src={post.photoURL}
-                    width={40}
-                    height={40}
-                    className="rounded-full border border-zinc-700 cursor-pointer"
-                    onClick={() => router.push(`/profile/${post.uid}`)}
-                    alt={post.name}
-                  />
-                  <strong
-                    className="text-zinc-100 cursor-pointer hover:underline"
-                    onClick={() => router.push(`/profile/${post.uid}`)}
-                  >
+                  <a href={`/profile/${post.uid}`}>
+                    <img
+                      src={post.photoURL}
+                      width={40}
+                      height={40}
+                      className="rounded-full border border-zinc-700 cursor-pointer hover:ring-2 hover:ring-blue-500 transition"
+                      alt={post.name}
+                    />
+                  </a>
+                  <a href={`/profile/${post.uid}`} className="text-zinc-100 cursor-pointer hover:underline font-semibold">
                     {post.name}
-                  </strong>
+                  </a>
                   {post.uid !== user.uid && (
                     <button
                       onClick={() => toggleFollow(post.uid)}
