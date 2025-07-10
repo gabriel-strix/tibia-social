@@ -8,9 +8,10 @@ import { sendNotification } from "@/lib/notificationService";
 
 type Props = {
   targetUid: string;
+  className?: string;
 };
 
-export default function FollowButton({ targetUid }: Props) {
+export default function FollowButton({ targetUid, className }: Props) {
   const { user } = useAuth();
   const [isFollowing, setIsFollowing] = useState(false);
 
@@ -51,8 +52,13 @@ export default function FollowButton({ targetUid }: Props) {
   }
 
   return (
-    <button onClick={toggleFollow}>
-      {isFollowing ? "Deixar de seguir" : "Seguir"}
+    <button
+      onClick={toggleFollow}
+      className={className || (isFollowing
+        ? "bg-zinc-700 text-white px-4 py-2 rounded font-semibold ml-2"
+        : "bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold ml-2")}
+    >
+      {isFollowing ? "Seguindo" : "Seguir"}
     </button>
   );
 }

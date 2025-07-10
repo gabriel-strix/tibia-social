@@ -8,6 +8,7 @@ import { Character, addCharacter, updateCharacter, deleteCharacter } from "@/lib
 import FollowersFollowing from "@/components/FollowersFollowing";
 import { TIBIA_WORLDS } from "@/lib/tibiaWorlds";
 import UserPostsGrid from "@/components/UserPostsGrid";
+import FollowButton from "@/components/FollowButton";
 
 interface UserProfileProps {
   uid: string;
@@ -112,12 +113,15 @@ export default function UserProfile({ uid }: UserProfileProps) {
             )}
             <button onClick={() => window.location.href = `/user/${uid}`} className="text-blue-400 hover:underline font-semibold">Ver feed deste usuário</button>
             {!isOwnProfile && (
-              <button
-                onClick={() => window.location.href = `/chat/${uid}`}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition font-semibold"
-              >
-                Enviar mensagem
-              </button>
+              <>
+                <button
+                  onClick={() => window.location.href = `/chat/${uid}`}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition font-semibold"
+                >
+                  Enviar mensagem
+                </button>
+                <FollowButton targetUid={uid} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition font-semibold ml-2" />
+              </>
             )}
           </div>
           <div className="flex gap-8 text-zinc-200 text-lg">

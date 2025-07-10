@@ -30,3 +30,7 @@ Para gerenciar denúncias, banir usuários tóxicos, etc.
 
 Bloquear usuários
 
+Não tem botão pra seguir
+
+Mídia não aparecendo no feed quando não segue
+
