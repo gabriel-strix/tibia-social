@@ -71,8 +71,14 @@ export default function NotificationsPage() {
           )}
           {notifications.map((n) => (
             <div key={n.id} className="flex items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-lg p-4 shadow">
-              <img src={n.fromPhotoURL} alt={n.fromName} className="w-12 h-12 rounded-full border-2 border-zinc-700" />
-              <span className="text-zinc-100 text-base">
+              <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
+                <a href={`/profile/${n.fromUid}`} title={`Ver perfil de ${n.fromName}`}>
+                  <img src={n.fromPhotoURL} alt={n.fromName} className="w-12 h-12 rounded-full border-2 border-zinc-700 hover:border-blue-500 transition object-cover" />
+                </a>
+              </div>
+              <span className="text-zinc-100 text-base break-words max-w-xs">
+                <a href={`/profile/${n.fromUid}`} className="text-blue-400 hover:underline font-semibold" title={`Ver perfil de ${n.fromName}`}>{n.fromName}</a>
+                {": "}
                 {n.type === "like" && n.commentId && n.postId ? (
                   <a
                     href={`/post/${n.postId}`}
