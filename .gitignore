@@ -41,7 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 # Firebase config
-src/lib/firebase.ts
+# src/lib/firebase.ts
 
 # VSCode
 .vscode/
