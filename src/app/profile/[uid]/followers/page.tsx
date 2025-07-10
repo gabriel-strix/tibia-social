@@ -1,7 +1,6 @@
 import FollowersListPage from "@/components/FollowersListPage";
 
-type Props = { params: { uid: string } };
-
-export default function ProfileFollowersPage({ params }: Props) {
+// Remover tipagem manual e usar a inferida pelo Next.js
+export default function ProfileFollowersPage({ params }: { params: { uid: string } }) {
   return <FollowersListPage profileUid={params.uid} type="followers" />;
 }
