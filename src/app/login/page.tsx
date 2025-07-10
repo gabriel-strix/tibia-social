@@ -10,7 +10,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push("/profile"); // redireciona se já logado
+      router.push("/feed"); // redireciona para o feed se já logado
     }
   }, [user, loading]);
 
