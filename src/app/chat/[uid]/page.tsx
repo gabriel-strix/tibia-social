@@ -5,7 +5,7 @@ import ChatWindow from "@/components/ChatWindow";
 import { doc, getDoc } from "firebase/firestore";
 import db from "@/lib/firestore";
 
-export default function ChatWithUserPage({ params }) {
+export default function ChatWithUserPage({ params }: { params: { uid: string } }) {
   const uid = params.uid;
   const [userData, setUserData] = useState<{ name: string; photoURL: string } | null>(null);
   const router = useRouter();
