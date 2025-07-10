@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import UserSearchBar from "@/components/UserSearchBar";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { listenUnreadMessages } from "@/lib/chatUnreadService";
 import { listenUnreadNotifications } from "@/lib/notificationUnreadService";
@@ -11,6 +11,7 @@ import { listenUnreadNotifications } from "@/lib/notificationUnreadService";
 export default function Navbar() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
@@ -27,6 +28,9 @@ export default function Navbar() {
   function handleUserSelect(u: any) {
     router.push(`/profile/${u.uid}`);
   }
+
+  // Não exibe a navbar na tela de login
+  if (pathname === "/login") return null;
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-zinc-900 border-b border-zinc-800 h-[80px] flex items-center px-4 md:px-8 justify-between shadow-sm">

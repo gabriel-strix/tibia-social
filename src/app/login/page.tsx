@@ -18,6 +18,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 bg-zinc-900 rounded-lg shadow-lg max-w-md mx-auto mt-16">
+      <img
+        src="/logo.png"
+        alt="Tibia Social Logo"
+        className="w-32 h-auto mb-4"
+      />
       <h1 className="text-2xl font-bold mb-6 text-zinc-100">Entrar</h1>
       <button
         onClick={() => login().catch(console.error)}

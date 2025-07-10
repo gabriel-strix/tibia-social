@@ -251,13 +251,19 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
             }
           }}
         />
-        <label htmlFor="chatFileInput" className="cursor-pointer inline-block bg-zinc-700 text-white px-3 py-2 rounded hover:bg-zinc-600 mr-2">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.25 0V6a7.5 7.5 0 10-15 0v4.5m16.5 0a2.25 2.25 0 01-2.25 2.25H4.5A2.25 2.25 0 012.25 10.5m19.5 0v7.125c0 1.24-1.01 2.25-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25V10.5" /></svg>
+        <label htmlFor="chatFileInput" className="cursor-pointer inline-block bg-zinc-700 text-white px-3 py-2 rounded hover:bg-zinc-600 mr-2" title="Anexar arquivo">
+          {/* Ícone de clipe de papel (paperclip) Heroicons */}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.262 10.488l-6.01 6.01a3.375 3.375 0 104.774 4.774l7.778-7.778a5.25 5.25 0 10-7.425-7.425l-8.485 8.485" />
+          </svg>
         </label>
         {/* Botão de gravação de áudio */}
         {!recording && !audioBlob && (
-          <button type="button" onClick={startRecording} className="bg-zinc-700 text-white px-3 py-2 rounded hover:bg-zinc-600 mr-2" title="Gravar áudio">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75v1.5m0 0a6 6 0 006-6h-1.5a4.5 4.5 0 01-9 0H6a6 6 0 006 6zm0-13.5a3 3 0 00-3 3v4.5a3 3 0 006 0V6a3 3 0 00-3-3z" /></svg>
+          <button type="button" onClick={startRecording} className="bg-zinc-700 text-white px-3 py-2 rounded hover:bg-zinc-600 mr-2 flex items-center justify-center" title="Gravar áudio">
+            {/* Ícone de microfone Heroicons (ajustado para não cortar) */}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 block">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75v1.5m0 0a6 6 0 006-6h-1.5a4.5 4.5 0 01-9 0H6a6 6 0 006 6zm0-13.5a3 3 0 00-3 3v4.5a3 3 0 006 0V6a3 3 0 00-3-3z" />
+            </svg>
           </button>
         )}
         {recording && (
