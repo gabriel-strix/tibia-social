@@ -7,18 +7,37 @@ import { useEffect, useState } from "react";
 import { markAllNotificationsAsRead } from "@/lib/notificationMarkAllRead";
 import { clearAllNotifications } from "@/lib/notificationClearAll";
 import { useRouter } from "next/navigation";
+import type { Notification } from "@/lib/notificationService";
 
 // Página de notificações estilo Instagram
 export default function NotificationsPage() {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[] & { id: string }[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, "notifications", user.uid, "items"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
-      setNotifications(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      // Unifica notificações de mensagem recebida por usuário
+      const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification & { id: string }));
+      const grouped: Record<string, Notification & { id: string }> = {};
+      const result: (Notification & { id: string })[] = [];
+      for (const n of all) {
+        if (n.type === "message" && n.fromUid) {
+          // Se já existe, mantém só a mais recente
+          if (!grouped[n.fromUid] || (n.createdAt?.toMillis?.() > grouped[n.fromUid].createdAt?.toMillis?.())) {
+            grouped[n.fromUid] = n;
+          }
+        } else {
+          result.push(n);
+        }
+      }
+      // Adiciona as notificações de mensagem unificadas
+      result.push(...Object.values(grouped));
+      // Ordena por data (desc)
+      result.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      setNotifications(result);
     });
     return () => unsub();
   }, [user]);
