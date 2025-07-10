@@ -1,6 +1,4 @@
 "use client";
-import { use } from "react";
-
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ChatWindow from "@/components/ChatWindow";
