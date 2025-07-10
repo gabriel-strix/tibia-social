@@ -9,6 +9,7 @@ import Comment from "@/components/Comment";
 import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
 import InstagramVideo from "@/components/InstagramVideo";
+import RequireAuth from "@/components/RequireAuth";
 
 // Corrige obtenção do postId para Next.js 14+ e checagem de user
 export default function PostPage() {
@@ -127,152 +128,154 @@ export default function PostPage() {
   }
 
   return (
-    <div className="flex justify-center w-full min-h-screen bg-zinc-950 pt-4">
-      <div className="w-full max-w-xl flex flex-col gap-8 mt-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <a href={`/profile/${post.uid}`}>
-              <img src={post.photoURL || '/default-avatar.png'} alt={post.name} className="w-10 h-10 rounded-full border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition" />
-            </a>
-            <a href={`/profile/${post.uid}`} className="text-zinc-100 font-semibold hover:underline">
-              {post.name}
-            </a>
-            <span className="ml-auto text-xs text-zinc-400">{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span>
-          </div>
-          {post.imageURL && (
-            <>
-              <img
-                src={post.imageURL}
-                alt="Imagem do post"
-                className="w-full max-h-[400px] object-cover bg-zinc-800 border-b border-zinc-800 cursor-pointer transition hover:brightness-75"
-                onClick={() => setModalImage(post.imageURL)}
-              />
-            </>
-          )}
-          {post.videoURL && (
-            <InstagramVideo src={post.videoURL} />
-          )}
-          {editingPost ? (
-            <div className="flex flex-col gap-2 mt-2">
-              <textarea
-                value={editingText}
-                onChange={(e) => setEditingText(e.target.value)}
-                rows={3}
-                className="w-full p-2 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleEditPost}
-                  className="px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                >Salvar</button>
-                <button
-                  onClick={() => setEditingPost(false)}
-                  className="px-4 py-1 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-100 font-semibold"
-                >Cancelar</button>
-              </div>
+    <RequireAuth>
+      <div className="flex justify-center w-full min-h-screen bg-zinc-950 pt-4">
+        <div className="w-full max-w-xl flex flex-col gap-8 mt-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <a href={`/profile/${post.uid}`}>
+                <img src={post.photoURL || '/default-avatar.png'} alt={post.name} className="w-10 h-10 rounded-full border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition" />
+              </a>
+              <a href={`/profile/${post.uid}`} className="text-zinc-100 font-semibold hover:underline">
+                {post.name}
+              </a>
+              <span className="ml-auto text-xs text-zinc-400">{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span>
             </div>
-          ) : (
-            <p className="text-zinc-200 whitespace-pre-line mb-2">{post.text}</p>
-          )}
-          <div className="flex items-center gap-3 mt-2">
-            <button
-              onClick={toggleLike}
-              className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${liked ? 'bg-pink-700 text-white' : 'bg-zinc-700 text-zinc-200 hover:bg-zinc-600'}`}
-            >
-              {liked ? "💔 Descurtir" : "❤️ Curtir"} ({post.likes?.length || 0})
-            </button>
-            {/* Botão de denúncia de post no individual */}
-            {!isOwner && post.uid !== user.uid && (
+            {post.imageURL && (
+              <>
+                <img
+                  src={post.imageURL}
+                  alt="Imagem do post"
+                  className="w-full max-h-[400px] object-cover bg-zinc-800 border-b border-zinc-800 cursor-pointer transition hover:brightness-75"
+                  onClick={() => setModalImage(post.imageURL)}
+                />
+              </>
+            )}
+            {post.videoURL && (
+              <InstagramVideo src={post.videoURL} />
+            )}
+            {editingPost ? (
+              <div className="flex flex-col gap-2 mt-2">
+                <textarea
+                  value={editingText}
+                  onChange={(e) => setEditingText(e.target.value)}
+                  rows={3}
+                  className="w-full p-2 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleEditPost}
+                    className="px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                  >Salvar</button>
+                  <button
+                    onClick={() => setEditingPost(false)}
+                    className="px-4 py-1 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-100 font-semibold"
+                  >Cancelar</button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-zinc-200 whitespace-pre-line mb-2">{post.text}</p>
+            )}
+            <div className="flex items-center gap-3 mt-2">
               <button
-                onClick={async () => {
-                  const reason = prompt('Descreva o motivo da denúncia:');
-                  if (!reason) return;
+                onClick={toggleLike}
+                className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${liked ? 'bg-pink-700 text-white' : 'bg-zinc-700 text-zinc-200 hover:bg-zinc-600'}`}
+              >
+                {liked ? "💔 Descurtir" : "❤️ Curtir"} ({post.likes?.length || 0})
+              </button>
+              {/* Botão de denúncia de post no individual */}
+              {!isOwner && post.uid !== user.uid && (
+                <button
+                  onClick={async () => {
+                    const reason = prompt('Descreva o motivo da denúncia:');
+                    if (!reason) return;
+                    await sendReport({
+                      type: "post",
+                      contentId: post.id,
+                      contentText: post.text,
+                      reportedByUid: user.uid,
+                      reportedByName: user.displayName || "",
+                      reportedByPhotoURL: user.photoURL || "",
+                      reportedUserUid: post.uid,
+                      reportedUserName: post.name,
+                      reportedUserPhotoURL: post.photoURL,
+                      reason,
+                      createdAt: Timestamp.now(),
+                    });
+                    alert('Denúncia enviada!');
+                  }}
+                  className="px-3 py-1 rounded bg-red-700 hover:bg-red-800 text-white font-semibold text-xs"
+                >Denunciar</button>
+              )}
+              {isOwner && !editingPost && (
+                <>
+                  <button
+                    onClick={() => { setEditingPost(true); setEditingText(post.text); }}
+                    className="px-3 py-1 rounded bg-yellow-600 hover:bg-yellow-700 text-white font-semibold"
+                  >Editar</button>
+                  <button
+                    onClick={handleDeletePost}
+                    className="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white font-semibold"
+                  >Excluir</button>
+                </>
+              )}
+            </div>
+          </div>
+          {/* Comentários */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
+            <strong className="text-zinc-100">Comentários</strong>
+            {comments.length === 0 && <p className="text-zinc-400">Sem comentários ainda.</p>}
+            {comments.map((comment) => (
+              <Comment
+                key={comment.id}
+                id={comment.id}
+                uid={comment.uid}
+                name={comment.name}
+                photoURL={comment.photoURL}
+                text={comment.text}
+                likes={comment.likes}
+                currentUserUid={user.uid}
+                onUpdate={handleUpdateComment}
+                onDelete={handleDeleteComment}
+                onLike={() => handleLikeComment(comment)}
+                onReport={async (reason) => {
+                  if (comment.uid === user.uid) return; // Não pode denunciar o próprio comentário
                   await sendReport({
-                    type: "post",
-                    contentId: post.id,
-                    contentText: post.text,
+                    type: "comment",
+                    contentId: comment.id,
+                    contentText: comment.text,
                     reportedByUid: user.uid,
                     reportedByName: user.displayName || "",
                     reportedByPhotoURL: user.photoURL || "",
-                    reportedUserUid: post.uid,
-                    reportedUserName: post.name,
-                    reportedUserPhotoURL: post.photoURL,
+                    reportedUserUid: comment.uid,
+                    reportedUserName: comment.name,
+                    reportedUserPhotoURL: comment.photoURL,
                     reason,
                     createdAt: Timestamp.now(),
                   });
                   alert('Denúncia enviada!');
                 }}
-                className="px-3 py-1 rounded bg-red-700 hover:bg-red-800 text-white font-semibold text-xs"
-              >Denunciar</button>
-            )}
-            {isOwner && !editingPost && (
-              <>
-                <button
-                  onClick={() => { setEditingPost(true); setEditingText(post.text); }}
-                  className="px-3 py-1 rounded bg-yellow-600 hover:bg-yellow-700 text-white font-semibold"
-                >Editar</button>
-                <button
-                  onClick={handleDeletePost}
-                  className="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white font-semibold"
-                >Excluir</button>
-              </>
-            )}
+              />
+            ))}
+            <textarea
+              placeholder="Escreva um comentário..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              rows={2}
+              className="w-full p-2 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mt-2"
+            />
+            <button
+              onClick={handleAddComment}
+              className="mt-2 px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+            >Comentar</button>
           </div>
         </div>
-        {/* Comentários */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
-          <strong className="text-zinc-100">Comentários</strong>
-          {comments.length === 0 && <p className="text-zinc-400">Sem comentários ainda.</p>}
-          {comments.map((comment) => (
-            <Comment
-              key={comment.id}
-              id={comment.id}
-              uid={comment.uid}
-              name={comment.name}
-              photoURL={comment.photoURL}
-              text={comment.text}
-              likes={comment.likes}
-              currentUserUid={user.uid}
-              onUpdate={handleUpdateComment}
-              onDelete={handleDeleteComment}
-              onLike={() => handleLikeComment(comment)}
-              onReport={async (reason) => {
-                if (comment.uid === user.uid) return; // Não pode denunciar o próprio comentário
-                await sendReport({
-                  type: "comment",
-                  contentId: comment.id,
-                  contentText: comment.text,
-                  reportedByUid: user.uid,
-                  reportedByName: user.displayName || "",
-                  reportedByPhotoURL: user.photoURL || "",
-                  reportedUserUid: comment.uid,
-                  reportedUserName: comment.name,
-                  reportedUserPhotoURL: comment.photoURL,
-                  reason,
-                  createdAt: Timestamp.now(),
-                });
-                alert('Denúncia enviada!');
-              }}
-            />
-          ))}
-          <textarea
-            placeholder="Escreva um comentário..."
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            rows={2}
-            className="w-full p-2 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mt-2"
-          />
-          <button
-            onClick={handleAddComment}
-            className="mt-2 px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-          >Comentar</button>
-        </div>
+        {modalImage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setModalImage(null)}>
+            <img src={modalImage} alt="Imagem ampliada" className="max-h-[90vh] max-w-[90vw] rounded shadow-lg border-4 border-zinc-800" />
+          </div>
+        )}
       </div>
-      {modalImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setModalImage(null)}>
-          <img src={modalImage} alt="Imagem ampliada" className="max-h-[90vh] max-w-[90vw] rounded shadow-lg border-4 border-zinc-800" />
-        </div>
-      )}
-    </div>
+    </RequireAuth>
   );
 }

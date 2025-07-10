@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import UserProfile from "@/components/UserProfile";
+import RequireAuth from "@/components/RequireAuth";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -18,5 +19,9 @@ export default function ProfilePage() {
   if (loading) return <p>Carregando...</p>;
   if (!user) return null;
 
-  return <UserProfile uid={user.uid} />;
+  return (
+    <RequireAuth>
+      <UserProfile uid={user.uid} />
+    </RequireAuth>
+  );
 }

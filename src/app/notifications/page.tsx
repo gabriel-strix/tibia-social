@@ -11,15 +11,16 @@ import type { Notification } from "@/lib/notificationService";
 
 // Página de notificações estilo Instagram
 export default function NotificationsPage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [notifications, setNotifications] = useState<Notification[] & { id: string }[]>([]);
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !loading) {
       router.push("/login");
       return;
     }
+    if (!user) return;
     const q = query(collection(db, "notifications", user.uid, "items"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       // Unifica notificações de mensagem recebida por usuário
@@ -43,7 +44,7 @@ export default function NotificationsPage() {
       setNotifications(result);
     });
     return () => unsub();
-  }, [user, router]);
+  }, [user, loading, router]);
 
   useEffect(() => {
     if (!user) return;

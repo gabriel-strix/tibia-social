@@ -4,8 +4,17 @@ import { useEffect, useState } from "react";
 import ChatWindow from "@/components/ChatWindow";
 import { doc, getDoc } from "firebase/firestore";
 import db from "@/lib/firestore";
+import RequireAuth from "@/components/RequireAuth";
 
 export default function ChatWithUserPage() {
+  return (
+    <RequireAuth>
+      <ChatWithUserContent />
+    </RequireAuth>
+  );
+}
+
+function ChatWithUserContent() {
   const params = useParams<{ uid?: string }>();
   const uid = params?.uid || "";
   const [userData, setUserData] = useState<{ name: string; photoURL: string } | null>(null);
