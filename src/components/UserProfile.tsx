@@ -111,7 +111,7 @@ export default function UserProfile({ uid }: UserProfileProps) {
             {isOwnProfile && (
               <button onClick={logout} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition font-semibold">Sair</button>
             )}
-            <button onClick={() => window.location.href = `/user/${uid}`} className="text-blue-400 hover:underline font-semibold">Ver feed deste usuário</button>
+            {/* Botão "Ver feed deste usuário" removido */}
             {!isOwnProfile && (
               <>
                 <button
