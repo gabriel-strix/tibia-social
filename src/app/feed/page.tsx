@@ -31,7 +31,7 @@ import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
 import InstagramVideo from "@/components/InstagramVideo";
 import LikeAvatars from "@/components/LikeAvatars";
-import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { MdComment } from "react-icons/md";
 import RequireAuth from "@/components/RequireAuth";
 
 type Post = {
@@ -599,7 +599,7 @@ export default function FeedPage() {
                         onClick={() => setShowCommentsMap((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}
                         className="flex items-center gap-1 px-3 py-1 rounded text-sm font-semibold bg-zinc-700 text-zinc-200 hover:bg-zinc-600"
                       >
-                        <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                        <MdComment className="w-5 h-5" />
                         <span>{comments.length}</span>
                       </button>
                       {isOwner && editingPostId !== post.id && (

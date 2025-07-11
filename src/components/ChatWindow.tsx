@@ -5,6 +5,7 @@ import { sendMessage, listenMessages, ChatMessage, markMessagesAsRead, deleteMes
 import { sendNotification } from "@/lib/notificationService";
 import { Timestamp } from "firebase/firestore";
 import { clearChatMessages, deleteChat } from "@/lib/chatAdminService";
+import { MdMoreVert, MdClose, MdAttachFile, MdSend, MdMic, MdStop } from "react-icons/md";
 
 type Props = {
   otherUid: string;
@@ -153,7 +154,7 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
           title="Opções do chat"
           onClick={() => setShowOptions((v) => !v)}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-zinc-400"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm6.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm6.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
+          <MdMoreVert className="w-6 h-6 text-zinc-400" />
         </button>
         {showOptions && (
           <div className="absolute right-0 top-12 bg-zinc-900 border border-zinc-800 rounded shadow-lg z-50 min-w-[180px]">
@@ -208,7 +209,7 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
                     }
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <MdClose className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -262,23 +263,17 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
           }}
         />
         <label htmlFor="chatFileInput" className="cursor-pointer inline-block bg-zinc-700 text-white px-3 py-2 rounded hover:bg-zinc-600 mr-2" title="Anexar arquivo">
-          {/* Ícone de clipe de papel (paperclip) Heroicons */}
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.262 10.488l-6.01 6.01a3.375 3.375 0 104.774 4.774l7.778-7.778a5.25 5.25 0 10-7.425-7.425l-8.485 8.485" />
-          </svg>
+          <MdAttachFile className="w-5 h-5 inline" />
         </label>
         {/* Botão de gravação de áudio */}
         {!recording && !audioBlob && (
           <button type="button" onClick={startRecording} className="bg-zinc-700 text-white px-3 py-2 rounded hover:bg-zinc-600 mr-2 flex items-center justify-center" title="Gravar áudio">
-            {/* Ícone de microfone Heroicons (ajustado para não cortar) */}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 block">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75v1.5m0 0a6 6 0 006-6h-1.5a4.5 4.5 0 01-9 0H6a6 6 0 006 6zm0-13.5a3 3 0 00-3 3v4.5a3 3 0 006 0V6a3 3 0 00-3-3z" />
-            </svg>
+            <MdMic className="w-6 h-6 block" />
           </button>
         )}
         {recording && (
           <button type="button" onClick={stopRecording} className="bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 mr-2 animate-pulse" title="Parar gravação">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 inline"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75v10.5h10.5V6.75H6.75z" /></svg>
+            <MdStop className="w-5 h-5 inline" />
             Gravando...
           </button>
         )}
@@ -305,7 +300,13 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
             </button>
           </div>
         )}
-        <button type="submit" className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold">Enviar</button>
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+          title="Enviar mensagem"
+        >
+          <MdSend className="w-5 h-5" />
+        </button>
       </form>
     </div>
   );
