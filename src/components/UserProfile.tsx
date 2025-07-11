@@ -165,10 +165,8 @@ export default function UserProfile({ uid }: UserProfileProps) {
             )}
           </div>
           <div className="flex gap-8 text-zinc-200 text-lg">
-            <span><b>{characters.length}</b> personagens</span>
-            {/* Aqui pode-se adicionar seguidores/seguindo resumido */}
+            {/* Removido descritivo com número de personagens */}
           </div>
-          <p className="text-zinc-400 text-base">{profile.email}</p>
           <FollowersFollowing profileUid={uid} />
         </div>
       </div>
