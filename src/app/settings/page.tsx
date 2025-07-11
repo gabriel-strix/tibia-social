@@ -153,7 +153,22 @@ export default function SettingsPage() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-zinc-200 mb-2">Conta</h2>
-            <button className="px-4 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 w-full mb-2">Excluir conta</button>
+            <button
+              className="px-4 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 w-full mb-2"
+              onClick={async () => {
+                if (!window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível e todos os seus dados serão apagados permanentemente.")) return;
+                const { deleteUserAccount } = await import("@/lib/userService");
+                try {
+                  await deleteUserAccount(user.uid);
+                  alert("Conta excluída com sucesso. Você será redirecionado para o login.");
+                  router.replace("/login");
+                } catch (err) {
+                  alert("Erro ao excluir conta: " + (err as Error).message);
+                }
+              }}
+            >
+              Excluir conta
+            </button>
           </div>
           <div>
             <h2 className="text-lg font-semibold text-zinc-200 mb-2">Aparência</h2>
