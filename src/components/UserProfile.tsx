@@ -17,7 +17,7 @@ interface UserProfileProps {
 export default function UserProfile({ uid }: UserProfileProps) {
   const { user: currentUser, loading, logout } = useAuth();
   const isOwnProfile = currentUser?.uid === uid;
-  const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string; characters?: Character[]; blockedUsers?: string[] } | null>(null);
+  const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string; username?: string; characters?: Character[]; blockedUsers?: string[] } | null>(null);
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -129,7 +129,7 @@ export default function UserProfile({ uid }: UserProfileProps) {
             {!isOwnProfile && (
               <>
                 <button
-                  onClick={() => window.location.href = `/chat/${uid}`}
+                  onClick={() => window.location.href = `/chat/${profile?.username || uid}`}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition font-semibold"
                 >
                   Enviar mensagem
@@ -167,7 +167,7 @@ export default function UserProfile({ uid }: UserProfileProps) {
           <div className="flex gap-8 text-zinc-200 text-lg">
             {/* Removido descritivo com número de personagens */}
           </div>
-          <FollowersFollowing profileUid={uid} />
+          <FollowersFollowing profileUid={uid} username={profile.username} />
         </div>
       </div>
 

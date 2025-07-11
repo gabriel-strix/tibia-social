@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function LikeAvatars({ uids, currentUserUid }: Props) {
-  const [users, setUsers] = useState<{ uid: string; name: string; photoURL: string }[]>([]);
+  const [users, setUsers] = useState<{ uid: string; name: string; photoURL: string; username?: string }[]>([]);
 
   useEffect(() => {
     async function fetchUsers() {
@@ -23,7 +23,7 @@ export default function LikeAvatars({ uids, currentUserUid }: Props) {
         .filter((doc) => uids.includes(doc.id))
         .map((doc) => {
           const data = doc.data();
-          return { uid: doc.id, name: data.name || "(sem nome)", photoURL: data.photoURL || "/default-avatar.png" };
+          return { uid: doc.id, name: data.name || "(sem nome)", photoURL: data.photoURL || "/default-avatar.png", username: data.username };
         });
       // Ordena para mostrar o usuário atual primeiro, depois os outros
       result.sort((a, b) => (a.uid === currentUserUid ? -1 : b.uid === currentUserUid ? 1 : 0));
@@ -41,7 +41,7 @@ export default function LikeAvatars({ uids, currentUserUid }: Props) {
         {users.slice(0, 3).map((u, i) => (
           <a
             key={u.uid}
-            href={`/profile/${u.uid}`}
+            href={`/profile/${u.username || u.uid}`}
             tabIndex={0}
             aria-label={`Ver perfil de ${u.name}`}
           >
@@ -61,22 +61,22 @@ export default function LikeAvatars({ uids, currentUserUid }: Props) {
         {users.length === 1 && (
           users[0].uid === currentUserUid ? (
             <>
-              <a href={`/profile/${users[0].uid}`} className="hover:underline text-blue-400">Você</a> curtiu
+              <a href={`/profile/${users[0].username || users[0].uid}`} className="hover:underline text-blue-400">Você</a> curtiu
             </>
           ) : (
             <>
-              <a href={`/profile/${users[0].uid}`} className="hover:underline text-blue-400">{users[0].name}</a> curtiu
+              <a href={`/profile/${users[0].username || users[0].uid}`} className="hover:underline text-blue-400">{users[0].name}</a> curtiu
             </>
           )
         )}
         {users.length === 2 && (
           <>
-            <a href={`/profile/${users[0].uid}`} className="hover:underline text-blue-400">{users[0].uid === currentUserUid ? "Você" : users[0].name}</a> e <a href={`/profile/${users[1].uid}`} className="hover:underline text-blue-400">{users[1].uid === currentUserUid ? "você" : users[1].name}</a> curtiram
+            <a href={`/profile/${users[0].username || users[0].uid}`} className="hover:underline text-blue-400">{users[0].uid === currentUserUid ? "Você" : users[0].name}</a> e <a href={`/profile/${users[1].username || users[1].uid}`} className="hover:underline text-blue-400">{users[1].uid === currentUserUid ? "você" : users[1].name}</a> curtiram
           </>
         )}
         {users.length > 2 && (
           <>
-            <a href={`/profile/${users[0].uid}`} className="hover:underline text-blue-400">{users[0].uid === currentUserUid ? "Você" : users[0].name}</a> e outros {users.length - 1} curtiram
+            <a href={`/profile/${users[0].username || users[0].uid}`} className="hover:underline text-blue-400">{users[0].uid === currentUserUid ? "Você" : users[0].name}</a> e outros {users.length - 1} curtiram
           </>
         )}
       </span>

@@ -23,7 +23,7 @@ import {
   startAfter,
   limit,
 } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import db from "@/lib/firestore";
 import Comment from "@/components/Comment";
 import Link from "next/link";
@@ -73,7 +73,6 @@ export default function FeedPage() {
   const [commentsMap, setCommentsMap] = useState<Record<string, CommentType[]>>({});
   const [commentTextMap, setCommentTextMap] = useState<Record<string, string>>({});
   const [following, setFollowing] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
@@ -81,6 +80,7 @@ export default function FeedPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showCommentsMap, setShowCommentsMap] = useState<Record<string, boolean>>({});
   const [showCamera, setShowCamera] = useState(false);
+  const [usernamesMap, setUsernamesMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!loading && !user) {
@@ -162,10 +162,9 @@ export default function FeedPage() {
     });
   }
 
-  // Função para upload de imagem ou vídeo
+  // uploadMedia original (feed)
   async function uploadMedia(file: File, postId: string): Promise<{ imageURL?: string; videoURL?: string }> {
     if (file.type.startsWith('image/')) {
-      // Imagem: converter para WebP
       let fileToUpload = file;
       if (!file.type.includes('webp')) {
         try {
@@ -179,7 +178,6 @@ export default function FeedPage() {
       const url = await getDownloadURL(imageRef);
       return { imageURL: url };
     } else if (file.type.startsWith('video/')) {
-      // Vídeo: upload direto
       const videoRef = ref(storage, `posts/${postId}/${file.name}`);
       await uploadBytes(videoRef, file);
       const url = await getDownloadURL(videoRef);
@@ -194,7 +192,6 @@ export default function FeedPage() {
       alert("É obrigatório enviar uma imagem ou vídeo para publicar um post.");
       return;
     }
-    setUploading(true);
     try {
       // Cria o post sem mídia pra pegar o ID
       const docRef = await addDoc(collection(db, "posts"), {
@@ -221,7 +218,6 @@ export default function FeedPage() {
     } catch (error) {
       console.error("Erro ao criar post:", error);
     }
-    setUploading(false);
   }
 
   async function handleDelete(postId: string) {
@@ -441,6 +437,29 @@ export default function FeedPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [hasMore, loadingMore, user, following, lastVisible]);
 
+  useEffect(() => {
+    if (posts.length > 0) {
+      const uids = Array.from(new Set(posts.map(p => p.uid)));
+      Promise.all(uids.map(async uid => {
+        if (!usernamesMap[uid]) {
+          const { doc, getDoc } = await import("firebase/firestore");
+          const db = (await import("@/lib/firestore")).default;
+          const userDoc = await getDoc(doc(db, "users", uid));
+          if (userDoc.exists()) {
+            return { uid, username: userDoc.data().username };
+          }
+        }
+        return { uid, username: usernamesMap[uid] };
+      })).then(results => {
+        const map: Record<string, string> = {};
+        results.forEach(({ uid, username }) => {
+          if (username) map[uid] = username;
+        });
+        setUsernamesMap(prev => ({ ...prev, ...map }));
+      });
+    }
+  }, [posts]);
+
   if (loading) return <Spinner />;
   if (!user) return null;
 
@@ -452,7 +471,7 @@ export default function FeedPage() {
           {/* Formulário de novo post */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow flex flex-col gap-3 mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <Link href={`/profile`} className="group flex items-center gap-2 cursor-pointer">
+              <Link href={`/profile/${user.username || user.uid}`} className="group flex items-center gap-2 cursor-pointer">
                 <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 group-hover:border-blue-400 transition" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
                 <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition">{user.displayName}</span>
               </Link>
@@ -550,10 +569,10 @@ export default function FeedPage() {
             />
             <button
               onClick={handlePost}
-              disabled={uploading || (!text.trim() && !mediaFile)}
-              className={`mt-2 px-6 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors w-full ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              disabled={!text.trim() && !mediaFile}
+              className="mt-2 px-6 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors w-full"
             >
-              {uploading ? 'Publicando...' : 'Publicar'}
+              Publicar
             </button>
           </div>
 
@@ -572,7 +591,7 @@ export default function FeedPage() {
                 >
                   {/* Header do post */}
                   <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-                    <Link href={`/profile/${post.uid}`} className="group flex items-center gap-2 cursor-pointer">
+                    <Link href={`/profile/${usernamesMap[post.uid] || post.uid}`} className="group flex items-center gap-2 cursor-pointer">
                       <img
                         src={post.photoURL}
                         width={40}

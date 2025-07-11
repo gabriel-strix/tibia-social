@@ -18,6 +18,7 @@ export default function ChatList() {
   const [allUsers, setAllUsers] = useState<UserPreview[]>([]);
   const [messageCounts, setMessageCounts] = useState<Record<string, number>>({});
   const [unreadMap, setUnreadMap] = useState<Record<string, boolean>>({});
+  const [usernamesMap, setUsernamesMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!user) return;
@@ -75,6 +76,28 @@ export default function ChatList() {
     };
   }, [user, allUsers]);
 
+  // Busca usernames dos usuários
+  useEffect(() => {
+    if (allUsers.length > 0) {
+      const uids = allUsers.map(u => u.uid);
+      Promise.all(uids.map(async uid => {
+        const { doc, getDoc } = await import("firebase/firestore");
+        const db = (await import("@/lib/firestore")).default;
+        const userDoc = await getDoc(doc(db, "users", uid));
+        if (userDoc.exists()) {
+          return { uid, username: userDoc.data().username };
+        }
+        return { uid, username: undefined };
+      })).then(results => {
+        const map: Record<string, string> = {};
+        results.forEach(({ uid, username }) => {
+          if (username) map[uid] = username;
+        });
+        setUsernamesMap(map);
+      });
+    }
+  }, [allUsers]);
+
   if (!user) return null;
 
   return (
@@ -83,7 +106,7 @@ export default function ChatList() {
       <div className="flex flex-col gap-1">
         {allUsers.length === 0 && <div className="text-zinc-400">Nenhum usuário encontrado.</div>}
         {allUsers.map(u => (
-          <Link key={u.uid} href={`/chat/${u.uid}`} className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition relative">
+          <Link key={u.uid} href={`/chat/${usernamesMap[u.uid] || u.uid}`} className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition relative">
             <img src={u.photoURL || "/default-avatar.png"} alt={u.name} className="w-8 h-8 rounded-full border border-zinc-700" />
             <span className="text-zinc-100 font-semibold truncate">{u.name}</span>
             <span className="flex items-center ml-auto gap-1">

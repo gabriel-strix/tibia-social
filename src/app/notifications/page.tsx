@@ -9,10 +9,23 @@ import { clearAllNotifications } from "@/lib/notificationClearAll";
 import { useRouter } from "next/navigation";
 import type { Notification } from "@/lib/notificationService";
 
+// Função utilitária para buscar username a partir do uid
+async function getUsernameByUid(uid: string): Promise<string | undefined> {
+  if (!uid) return undefined;
+  const { doc, getDoc } = await import("firebase/firestore");
+  const db = (await import("@/lib/firestore")).default;
+  const userDoc = await getDoc(doc(db, "users", uid));
+  if (userDoc.exists()) {
+    return userDoc.data().username;
+  }
+  return undefined;
+}
+
 // Página de notificações estilo Instagram
 export default function NotificationsPage() {
   const { user, loading } = useAuth();
   const [notifications, setNotifications] = useState<Notification[] & { id: string }[]>([]);
+  const [usernamesMap, setUsernamesMap] = useState<Record<string, string>>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -57,6 +70,26 @@ export default function NotificationsPage() {
     markAllNotificationsAsRead(user.uid);
   }, [user]);
 
+  useEffect(() => {
+    // Busca usernames para todos os fromUid únicos das notificações
+    if (notifications.length > 0) {
+      const uids = Array.from(new Set(notifications.map(n => n.fromUid)));
+      Promise.all(uids.map(async uid => {
+        if (!usernamesMap[uid]) {
+          const username = await getUsernameByUid(uid);
+          return { uid, username };
+        }
+        return { uid, username: usernamesMap[uid] };
+      })).then(results => {
+        const map: Record<string, string> = {};
+        results.forEach(({ uid, username }) => {
+          if (username) map[uid] = username;
+        });
+        setUsernamesMap(prev => ({ ...prev, ...map }));
+      });
+    }
+  }, [notifications]);
+
   return (
     <div className="flex justify-center w-full min-h-screen bg-zinc-950 pt-4">
       <div className="w-full max-w-xl flex flex-col gap-8 mt-4">
@@ -82,12 +115,12 @@ export default function NotificationsPage() {
           {notifications.map((n) => (
             <div key={n.id} className="flex items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-lg p-4 shadow">
               <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
-                <a href={`/profile/${n.fromUid}`} title={`Ver perfil de ${n.fromName}`}>
+                <a href={`/profile/${usernamesMap[n.fromUid] || n.fromUid}`} title={`Ver perfil de ${n.fromName}`}>
                   <img src={n.fromPhotoURL} alt={n.fromName} className="w-12 h-12 rounded-full border-2 border-zinc-700 hover:border-blue-500 transition object-cover" />
                 </a>
               </div>
               <span className="text-zinc-100 text-base break-words max-w-xs">
-                <a href={`/profile/${n.fromUid}`} className="text-blue-400 hover:underline font-semibold" title={`Ver perfil de ${n.fromName}`}>{n.fromName}</a>
+                <a href={`/profile/${usernamesMap[n.fromUid] || n.fromUid}`} className="text-blue-400 hover:underline font-semibold" title={`Ver perfil de ${n.fromName}`}>{n.fromName}</a>
                 {": "}
                 {n.type === "like" && n.commentId && n.postId ? (
                   <a
@@ -111,7 +144,7 @@ export default function NotificationsPage() {
               {n.type === "message" && (
                 <button
                   className="ml-4 px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                  onClick={() => window.location.href = `/chat/${n.fromUid}`}
+                  onClick={() => window.location.href = `/chat/${usernamesMap[n.fromUid] || n.fromUid}`}
                 >
                   Abrir mensagem
                 </button>

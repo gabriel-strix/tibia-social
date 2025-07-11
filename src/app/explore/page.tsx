@@ -6,11 +6,11 @@ import Link from "next/link";
 export default function ExplorePage() {
   // Exemplo de dados estáticos (substitua por busca real depois)
   const mockUsers = [
-    { uid: "1", name: "Knightzera", photoURL: "/default-avatar.png" },
-    { uid: "2", name: "SorcererX", photoURL: "/default-avatar.png" },
-    { uid: "3", name: "Druidinha", photoURL: "/default-avatar.png" },
-    { uid: "4", name: "Paladina", photoURL: "/default-avatar.png" },
-    { uid: "5", name: "Maker123", photoURL: "/default-avatar.png" },
+    { uid: "1", name: "Knightzera", photoURL: "/default-avatar.png", username: "knightzera" },
+    { uid: "2", name: "SorcererX", photoURL: "/default-avatar.png", username: "sorcererx" },
+    { uid: "3", name: "Druidinha", photoURL: "/default-avatar.png", username: "druidinha" },
+    { uid: "4", name: "Paladina", photoURL: "/default-avatar.png", username: "paladina" },
+    { uid: "5", name: "Maker123", photoURL: "/default-avatar.png", username: "maker123" },
   ];
 
   return (
@@ -21,7 +21,7 @@ export default function ExplorePage() {
           {mockUsers.map((user) => (
             <Link
               key={user.uid}
-              href={`/profile/${user.uid}`}
+              href={`/profile/${user.username || user.uid}`}
               className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col items-center shadow hover:border-blue-400 transition"
             >
               <img src={user.photoURL} alt={user.name} className="w-20 h-20 rounded-full border-2 border-zinc-700 mb-2 object-cover" />

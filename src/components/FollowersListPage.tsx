@@ -9,6 +9,7 @@ type UserSummary = {
   uid: string;
   name: string;
   photoURL: string;
+  username?: string;
 };
 
 type Props = {
@@ -33,6 +34,7 @@ export default function FollowersListPage({ profileUid, type }: Props) {
             uid,
             name: data?.name ?? "(sem nome)",
             photoURL: data?.photoURL ?? "/default-avatar.png",
+            username: data?.username || undefined,
           });
         }
       }
@@ -53,7 +55,7 @@ export default function FollowersListPage({ profileUid, type }: Props) {
           {users.map((f) => (
             <li key={f.uid} className="flex items-center gap-2 mb-3">
               <Link
-                href={`/profile/${f.uid}`}
+                href={`/profile/${f.username || f.uid}`}
                 className="flex items-center gap-2 hover:bg-zinc-800 rounded px-2 py-1 transition-colors"
               >
                 <img

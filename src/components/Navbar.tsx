@@ -29,7 +29,7 @@ export default function Navbar() {
   }, [user]);
 
   function handleUserSelect(u: any) {
-    router.push(`/profile/${u.uid}`);
+    router.push(`/profile/${u.username || u.uid}`);
   }
 
   // Não exibe a navbar na tela de login ou se não estiver logado
@@ -153,7 +153,7 @@ export default function Navbar() {
               <MdClose className="w-7 h-7 text-zinc-400" />
             </button>
             <div className="w-full mt-8">
-              <UserSearchBar onSelect={u => { setShowMobileSearch(false); router.push(`/profile/${u.uid}`); }} />
+              <UserSearchBar onSelect={u => { setShowMobileSearch(false); router.push(`/profile/${u.username || u.uid}`); }} />
             </div>
           </div>
         </div>

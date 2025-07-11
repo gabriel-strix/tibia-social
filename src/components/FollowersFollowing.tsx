@@ -10,13 +10,15 @@ type UserSummary = {
   uid: string;
   name: string;
   photoURL: string;
+  username?: string;
 };
 
 type Props = {
   profileUid: string;
+  username?: string;
 };
 
-export default function FollowersFollowing({ profileUid }: Props) {
+export default function FollowersFollowing({ profileUid, username }: Props) {
   const [followers, setFollowers] = useState<UserSummary[]>([]);
   const [following, setFollowing] = useState<UserSummary[]>([]);
   const router = useRouter();
@@ -74,7 +76,7 @@ export default function FollowersFollowing({ profileUid }: Props) {
     <div className="mt-6 bg-zinc-900 rounded-lg p-4 shadow border border-zinc-800 flex gap-8 justify-center w-full max-w-md mx-auto">
       <button
         className="flex flex-col items-center group bg-transparent border-none cursor-pointer"
-        onClick={() => router.push(`/profile/${profileUid}/followers`)}
+        onClick={() => router.push(`/profile/${username || profileUid}/followers`)}
       >
         <span className="text-lg font-bold text-zinc-100 group-hover:text-blue-400 transition">
           {followers.length}
@@ -85,7 +87,7 @@ export default function FollowersFollowing({ profileUid }: Props) {
       </button>
       <button
         className="flex flex-col items-center group bg-transparent border-none cursor-pointer"
-        onClick={() => router.push(`/profile/${profileUid}/following`)}
+        onClick={() => router.push(`/profile/${username || profileUid}/following`)}
       >
         <span className="text-lg font-bold text-zinc-100 group-hover:text-blue-400 transition">
           {following.length}

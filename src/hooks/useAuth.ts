@@ -21,6 +21,26 @@ export function useAuth() {
         const docSnap = await getDoc(userRef);
         let extra = {};
         if (!docSnap.exists()) {
+          // Pede username ao criar novo usuário
+          let username = '';
+          while (!username || !/^[a-zA-Z0-9.,-]+$/.test(username)) {
+            username = window.prompt('Escolha um nome de usuário único (apenas letras, números, ponto, vírgula e traço):') || '';
+            if (!/^[a-zA-Z0-9.,-]+$/.test(username)) {
+              alert('Nome de usuário inválido.');
+            }
+          }
+          // Checa unicidade
+          const { getDocs, collection, query, where } = await import('firebase/firestore');
+          let isUnique = false;
+          while (!isUnique) {
+            const q = query(collection(db, 'users'), where('username', '==', username));
+            const snap = await getDocs(q);
+            if (snap.empty) {
+              isUnique = true;
+            } else {
+              username = window.prompt('Nome de usuário já existe. Escolha outro:') || '';
+            }
+          }
           await setDoc(userRef, {
             name: firebaseUser.displayName,
             email: firebaseUser.email,
@@ -29,8 +49,9 @@ export function useAuth() {
             following: [],
             isAdmin: false,
             banned: false,
+            username,
           });
-          extra = { isAdmin: false, banned: false };
+          extra = { isAdmin: false, banned: false, username };
         } else {
           extra = docSnap.data();
         }

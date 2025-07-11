@@ -21,6 +21,7 @@ export default function PostPage() {
   const [editingPost, setEditingPost] = useState(false);
   const [editingText, setEditingText] = useState("");
   const [modalImage, setModalImage] = useState<string | null>(null);
+  const [authorUsername, setAuthorUsername] = useState<string | undefined>(undefined);
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -42,6 +43,17 @@ export default function PostPage() {
     });
     return () => unsubscribe();
   }, [postId, post]);
+
+  useEffect(() => {
+    if (post && post.uid) {
+      (async () => {
+        const { doc, getDoc } = await import("firebase/firestore");
+        const db = (await import("@/lib/firestore")).default;
+        const userDoc = await getDoc(doc(db, "users", post.uid));
+        if (userDoc.exists()) setAuthorUsername(userDoc.data().username);
+      })();
+    }
+  }, [post]);
 
   if (!post) return <div className="text-zinc-400 p-8 text-center">Carregando post...</div>;
   if (loading) return <div className="text-zinc-400 p-8 text-center">Carregando...</div>;
@@ -133,10 +145,10 @@ export default function PostPage() {
         <div className="w-full max-w-xl flex flex-col gap-8 mt-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
             <div className="flex items-center gap-3 mb-2">
-              <a href={`/profile/${post.uid}`}>
+              <a href={`/profile/${authorUsername || post.uid}`}>
                 <img src={post.photoURL || '/default-avatar.png'} alt={post.name} className="w-10 h-10 rounded-full border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition" />
               </a>
-              <a href={`/profile/${post.uid}`} className="text-zinc-100 font-semibold hover:underline">
+              <a href={`/profile/${authorUsername || post.uid}`} className="text-zinc-100 font-semibold hover:underline">
                 {post.name}
               </a>
               <span className="ml-auto text-xs text-zinc-400">{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span>

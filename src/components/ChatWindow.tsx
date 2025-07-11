@@ -100,6 +100,7 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
     setRecording(false);
   }
 
+  // handleSend original (chat)
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if ((!text.trim() && !mediaFile && !audioBlob) || !user) return;
@@ -109,7 +110,6 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
     const otherUserDoc = await getDoc(doc(db, 'users', otherUid));
     const blockedUsers = otherUserDoc.exists() ? otherUserDoc.data().blockedUsers || [] : [];
     if (blockedUsers.includes(user.uid)) {
-      // Exibe mensagem genérica de usuário inexistente
       alert('Usuário não encontrado.');
       return;
     }
@@ -119,12 +119,10 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
         fileToSend = await convertToWebP(mediaFile);
       } catch (e) {}
     }
-    // Se for áudio, cria um File
     if (audioBlob) {
       fileToSend = new File([audioBlob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });
     }
     await sendMessage(user.uid, otherUid, text.trim(), fileToSend || undefined);
-    // Notifica o destinatário
     if (user.uid !== otherUid) {
       await sendNotification({
         toUid: otherUid,

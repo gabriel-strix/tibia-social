@@ -14,10 +14,18 @@ export default function UserSearchBar({ onSelect }: { onSelect: (user: any) => v
     if (!search.trim()) return;
     setLoading(true);
     const usersRef = collection(db, "users");
-    // Busca por nome do usuário
+    // Busca por username
+    const qUsername = query(usersRef, where("username", ">=", search), where("username", "<=", search + "\uf8ff"));
+    const snapUsername = await getDocs(qUsername);
+    let users = snapUsername.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+    // Busca por nome
     const q1 = query(usersRef, where("name", ">=", search), where("name", "<=", search + "\uf8ff"));
     const snap1 = await getDocs(q1);
-    let users = snap1.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+    snap1.docs.forEach(doc => {
+      if (!users.some(u => u.uid === doc.id)) {
+        users.push({ uid: doc.id, ...doc.data() });
+      }
+    });
     // Busca por nome de personagem
     const allUsersSnap = await getDocs(usersRef);
     const charMatches = allUsersSnap.docs.filter(doc => {
@@ -66,6 +74,7 @@ export default function UserSearchBar({ onSelect }: { onSelect: (user: any) => v
             >
               <img src={user.photoURL || "/default-avatar.png"} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-zinc-700" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
               <span className="text-zinc-100">{user.name}</span>
+              <span className="text-zinc-400 text-xs ml-2">@{user.username}</span>
             </li>
           ))}
         </ul>

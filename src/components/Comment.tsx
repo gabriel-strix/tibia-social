@@ -16,6 +16,7 @@ type CommentProps = {
   onDelete: (id: string) => Promise<void>;
   onLike: () => void;
   onReport?: (reason: string) => void;
+  username?: string;
 };
 
 export default function Comment({
@@ -29,7 +30,8 @@ export default function Comment({
   onUpdate,
   onDelete,
   onLike,
-  onReport
+  onReport,
+  username
 }: CommentProps) {
   const router = useRouter();
   const isOwner = uid === currentUserUid;
@@ -52,11 +54,11 @@ export default function Comment({
           width={40}
           height={40}
           className="w-10 h-10 rounded-full object-cover border border-zinc-700 cursor-pointer"
-          onClick={() => router.push(`/profile/${uid}`)}
+          onClick={() => router.push(`/profile/${username || uid}`)}
         />
         <strong
           className="ml-2 text-zinc-100 cursor-pointer hover:underline"
-          onClick={() => router.push(`/profile/${uid}`)}
+          onClick={() => router.push(`/profile/${username || uid}`)}
         >
           {name}
         </strong>
