@@ -1,0 +1,1 @@
+Arquivos [uid] movidos para evitar conflito de rotas dinâmicas. Pode remover esta pasta após validar a migração para username.
