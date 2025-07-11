@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import UserProfile from "@/components/UserProfile";
 import RequireAuth from "@/components/RequireAuth";
+import Spinner from "@/components/Spinner";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -16,7 +17,7 @@ export default function ProfilePage() {
     }
   }, [user, loading]);
 
-  if (loading) return <p>Carregando...</p>;
+  if (loading) return <Spinner />;
   if (!user) return null;
 
   return (

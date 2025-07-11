@@ -33,6 +33,7 @@ import InstagramVideo from "@/components/InstagramVideo";
 import LikeAvatars from "@/components/LikeAvatars";
 import { MdComment } from "react-icons/md";
 import RequireAuth from "@/components/RequireAuth";
+import Spinner from "@/components/Spinner";
 
 type Post = {
   id: string;
@@ -436,7 +437,7 @@ export default function FeedPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [hasMore, loadingMore, user, following, lastVisible]);
 
-  if (loading) return <p className="text-zinc-200">Carregando...</p>;
+  if (loading) return <Spinner />;
   if (!user) return null;
 
   return (

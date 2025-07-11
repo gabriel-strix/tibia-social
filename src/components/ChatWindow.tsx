@@ -145,7 +145,7 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
   }
 
   return (
-    <div className="flex flex-col h-full bg-zinc-900 rounded-lg border border-zinc-800 shadow">
+    <div className="flex flex-col h-[100dvh] bg-zinc-900 rounded-lg border border-zinc-800 shadow">
       <div className="flex items-center gap-3 p-4 border-b border-zinc-800 relative">
         <img src={otherPhotoURL} alt={otherName} className="w-10 h-10 rounded-full object-cover border border-zinc-700" />
         <span className="text-zinc-100 font-semibold">{otherName}</span>
@@ -217,13 +217,13 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSend} className="p-4 border-t border-zinc-800 flex gap-2 items-center">
+      <form onSubmit={handleSend} className="p-4 border-t border-zinc-800 flex flex-wrap gap-2 items-center">
         <input
           type="text"
           value={text}
           onChange={e => setText(e.target.value)}
           placeholder="Digite uma mensagem..."
-          className="flex-1 px-3 py-2 rounded bg-zinc-800 border border-zinc-700 text-zinc-100 focus:outline-none"
+          className="flex-1 min-w-[120px] px-3 py-2 rounded bg-zinc-800 border border-zinc-700 text-zinc-100 focus:outline-none"
         />
         {/* Input de mídia */}
         <input

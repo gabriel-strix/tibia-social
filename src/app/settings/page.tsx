@@ -3,6 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Spinner from "@/components/Spinner";
 
 export default function SettingsPage() {
   const { user, loading } = useAuth();
@@ -17,7 +18,7 @@ export default function SettingsPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-zinc-950">
-        <span className="text-zinc-400">Carregando...</span>
+        <Spinner />
       </div>
     );
   }
