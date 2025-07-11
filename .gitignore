@@ -56,5 +56,9 @@ next-env.d.ts
 .env.test.local
 .env.production.local
 
-# Anotações
+#arquivos sensíveis:
+notas.txt
+
+#anotações:
+melhorias.txt
 .ideias.txt
