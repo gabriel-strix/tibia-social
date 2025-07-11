@@ -447,8 +447,10 @@ export default function FeedPage() {
           {/* Formulário de novo post */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow flex flex-col gap-3 mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full border border-zinc-700" />
-              <span className="text-zinc-100 font-semibold">{user.displayName}</span>
+              <Link href={`/profile`} className="group flex items-center gap-2 cursor-pointer">
+                <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 group-hover:border-blue-400 transition" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
+                <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition">{user.displayName}</span>
+              </Link>
             </div>
             <div>
               <input
@@ -548,18 +550,16 @@ export default function FeedPage() {
                 >
                   {/* Header do post */}
                   <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-                    <a href={`/profile/${post.uid}`}>
+                    <Link href={`/profile/${post.uid}`} className="group flex items-center gap-2 cursor-pointer">
                       <img
                         src={post.photoURL}
                         width={40}
                         height={40}
-                        className="rounded-full border border-zinc-700 cursor-pointer hover:ring-2 hover:ring-blue-500 transition"
+                        className="w-10 h-10 rounded-full border border-zinc-700 object-cover group-hover:border-blue-400 transition"
                         alt={post.name}
                       />
-                    </a>
-                    <a href={`/profile/${post.uid}`} className="text-zinc-100 cursor-pointer hover:underline font-semibold">
-                      {post.name}
-                    </a>
+                      <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition">{post.name}</span>
+                    </Link>
                     {post.uid !== user.uid && (
                       <button
                         onClick={() => toggleFollow(post.uid)}
@@ -732,9 +732,10 @@ export default function FeedPage() {
         {/* Sidebar à direita fixa */}
         <aside className="hidden lg:flex flex-col w-80 ml-8 gap-6 sticky top-[80px] h-fit self-start">
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow flex flex-col items-center">
-            <img src={user?.photoURL || '/default-avatar.png'} alt="avatar" className="w-16 h-16 rounded-full border-2 border-zinc-700 mb-2" />
-            <span className="text-zinc-100 font-semibold text-lg">{user?.displayName}</span>
-            <Link href={`/profile`} className="mt-2 text-blue-400 hover:underline text-sm">Ver perfil</Link>
+            <Link href="/profile" className="group flex flex-col items-center cursor-pointer">
+              <img src={user?.photoURL || '/default-avatar.png'} alt="avatar" className="w-16 h-16 rounded-full object-cover border-2 border-zinc-700 mb-2 group-hover:border-blue-400 transition" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
+              <span className="text-zinc-100 font-semibold text-lg group-hover:text-blue-400 transition">{user?.displayName}</span>
+            </Link>
           </div>
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow">
             <h3 className="text-zinc-200 font-bold mb-2 text-lg">Espaço reservado</h3>

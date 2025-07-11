@@ -49,9 +49,9 @@ export default function Comment({
         <img
           src={photoURL}
           alt={name}
-          width={30}
-          height={30}
-          className="rounded-full border border-zinc-700 cursor-pointer"
+          width={40}
+          height={40}
+          className="w-10 h-10 rounded-full object-cover border border-zinc-700 cursor-pointer"
           onClick={() => router.push(`/profile/${uid}`)}
         />
         <strong

@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { listenUnreadMessages } from "@/lib/chatUnreadService";
 import { listenUnreadNotifications } from "@/lib/notificationUnreadService";
-import { MdHome, MdChat, MdExplore, MdNotifications, MdSettings, MdMenu, MdClose } from "react-icons/md";
+import { MdHome, MdChat, MdExplore, MdNotifications, MdSettings, MdMenu, MdClose, MdSearch } from "react-icons/md";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -16,6 +16,7 @@ export default function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -83,7 +84,7 @@ export default function Navbar() {
         {user ? (
           <>
             <Link href={`/profile`} className="flex items-center gap-2 group">
-              <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-8 h-8 rounded-full border-2 border-zinc-700 group-hover:border-blue-400 transition" />
+              <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700 group-hover:border-blue-400 transition" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
               <span className="hidden md:inline text-zinc-200 font-semibold group-hover:text-blue-400 transition">{user.displayName || 'Perfil'}</span>
             </Link>
             <button
@@ -128,7 +129,7 @@ export default function Navbar() {
             <Link href="/explore" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}><MdExplore /> Explorar</Link>
             <Link href="/notifications" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}><MdNotifications /> Notificações</Link>
             <Link href="/profile" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}>
-              <img src={user?.photoURL || '/default-avatar.png'} alt="avatar" className="w-7 h-7 rounded-full border-2 border-zinc-700" /> Perfil
+              <img src={user?.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} /> Perfil
             </Link>
             <button onClick={() => { setMobileMenuOpen(false); router.push('/settings'); }} className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg"><MdSettings /> Configurações</button>
             {user?.isAdmin && (
@@ -137,8 +138,24 @@ export default function Navbar() {
               </Link>
             )}
             <button onClick={logout} className="flex items-center gap-3 text-red-400 hover:text-red-600 text-lg mt-4"><MdClose /> Sair</button>
+            <button onClick={() => setShowMobileSearch(true)} className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg">
+              <MdSearch /> Pesquisar jogadores
+            </button>
           </div>
           <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
+        </div>
+      )}
+      {/* Modal de pesquisa mobile */}
+      {showMobileSearch && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center">
+          <div className="bg-zinc-900 rounded-lg p-6 w-full max-w-md shadow-lg relative flex flex-col items-center">
+            <button onClick={() => setShowMobileSearch(false)} className="absolute top-3 right-3 p-2 rounded-full hover:bg-zinc-800 z-10">
+              <MdClose className="w-7 h-7 text-zinc-400" />
+            </button>
+            <div className="w-full mt-8">
+              <UserSearchBar onSelect={u => { setShowMobileSearch(false); router.push(`/profile/${u.uid}`); }} />
+            </div>
+          </div>
         </div>
       )}
     </nav>

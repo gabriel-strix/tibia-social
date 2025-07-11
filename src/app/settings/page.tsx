@@ -55,6 +55,14 @@ export default function SettingsPage() {
               const { doc, updateDoc } = await import('firebase/firestore');
               const db = (await import('@/lib/firestore')).default;
               await updateDoc(doc(db, 'users', currentUser.uid), { name, photoURL });
+              // Atualiza a foto de perfil e nome em todos os posts do usuário
+              const { collection, getDocs, updateDoc: updatePostDoc, doc: postDoc } = await import('firebase/firestore');
+              const postsSnap = await getDocs(collection(db, 'posts'));
+              for (const post of postsSnap.docs) {
+                if (post.data().uid === currentUser.uid) {
+                  await updatePostDoc(postDoc(db, 'posts', post.id), { photoURL, name });
+                }
+              }
               alert('Perfil atualizado com sucesso!');
             }}>
               <label className="flex flex-col gap-1 text-zinc-200">

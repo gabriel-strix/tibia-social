@@ -118,7 +118,7 @@ export default function UserProfile({ uid }: UserProfileProps) {
     <div className="flex flex-col items-center w-full min-h-screen bg-zinc-950 pt-4">
       {/* Header do perfil estilo Instagram */}
       <div className="w-full max-w-3xl flex flex-col md:flex-row items-center md:items-start gap-8 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-8 mt-8 mb-8">
-        <img src={profile.photoURL} alt="Foto do usuário" width={128} height={128} className="rounded-full border-4 border-zinc-700 object-cover w-32 h-32" />
+        <img src={profile.photoURL || '/default-avatar.png'} alt="Foto do usuário" width={128} height={128} className="w-32 h-32 rounded-full object-cover border-4 border-zinc-700" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
         <div className="flex-1 flex flex-col gap-4 w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
             <h1 className="text-2xl font-bold text-zinc-100">{profile.name}</h1>

@@ -147,7 +147,7 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
   return (
     <div className="flex flex-col h-full bg-zinc-900 rounded-lg border border-zinc-800 shadow">
       <div className="flex items-center gap-3 p-4 border-b border-zinc-800 relative">
-        <img src={otherPhotoURL} alt={otherName} className="w-10 h-10 rounded-full border border-zinc-700" />
+        <img src={otherPhotoURL} alt={otherName} className="w-10 h-10 rounded-full object-cover border border-zinc-700" />
         <span className="text-zinc-100 font-semibold">{otherName}</span>
         <button
           className="ml-auto p-2 rounded hover:bg-zinc-800 transition relative"

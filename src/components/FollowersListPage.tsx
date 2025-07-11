@@ -59,9 +59,12 @@ export default function FollowersListPage({ profileUid, type }: Props) {
                 <img
                   src={f.photoURL}
                   alt={f.name}
-                  width={32}
-                  height={32}
-                  className="rounded-full border border-zinc-700"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 rounded-full object-cover border border-zinc-700"
+                  onError={(e) => {
+                    e.currentTarget.src = "/default-avatar.png";
+                  }}
                 />
                 <span className="text-zinc-100 font-medium">{f.name}</span>
               </Link>

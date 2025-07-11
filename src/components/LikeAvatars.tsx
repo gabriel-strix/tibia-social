@@ -46,11 +46,12 @@ export default function LikeAvatars({ uids, currentUserUid }: Props) {
             aria-label={`Ver perfil de ${u.name}`}
           >
             <img
-              src={u.photoURL}
+              src={u.photoURL || '/default-avatar.png'}
               alt={u.name}
               title={u.name + (u.uid === currentUserUid ? " (você)" : "")}
-              className={`w-7 h-7 rounded-full border-2 border-zinc-800 bg-zinc-900 ${i === 0 ? "z-10" : i === 1 ? "z-9" : "z-8"}`}
+              className={`w-7 h-7 rounded-full object-cover border-2 border-zinc-800 bg-zinc-900 ${i === 0 ? "z-10" : i === 1 ? "z-9" : "z-8"}`}
               style={{ boxShadow: "0 0 0 2px #18181b" }}
+              onError={e => { e.currentTarget.src = '/default-avatar.png'; }}
             />
           </a>
         ))}
