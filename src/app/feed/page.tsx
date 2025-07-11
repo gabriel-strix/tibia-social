@@ -31,9 +31,12 @@ import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
 import InstagramVideo from "@/components/InstagramVideo";
 import LikeAvatars from "@/components/LikeAvatars";
-import { MdComment } from "react-icons/md";
+import { MdComment, MdCameraAlt } from "react-icons/md";
 import RequireAuth from "@/components/RequireAuth";
 import Spinner from "@/components/Spinner";
+import dynamic from "next/dynamic";
+
+const CameraModal = dynamic(() => import("@/components/CameraModal"), { ssr: false });
 
 type Post = {
   id: string;
@@ -77,6 +80,7 @@ export default function FeedPage() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showCommentsMap, setShowCommentsMap] = useState<Record<string, boolean>>({});
+  const [showCamera, setShowCamera] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -453,16 +457,16 @@ export default function FeedPage() {
                 <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition">{user.displayName}</span>
               </Link>
             </div>
-            <div>
+            <div className="flex gap-2 mb-2">
+              {/* Botão para selecionar arquivo da galeria */}
               <input
-                id="fileInput"
+                id="fileInputGallery"
                 type="file"
                 accept="image/*,video/*"
                 onChange={async (e) => {
                   if (e.target.files && e.target.files[0]) {
                     const file = e.target.files[0];
                     if (file.type.startsWith('video/')) {
-                      // Checa duração do vídeo antes de permitir
                       const url = URL.createObjectURL(file);
                       const video = document.createElement('video');
                       video.preload = 'metadata';
@@ -489,20 +493,37 @@ export default function FeedPage() {
                 }}
                 className="hidden"
               />
-
               <label
-                htmlFor="fileInput"
+                htmlFor="fileInputGallery"
                 className="cursor-pointer inline-block bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-600"
               >
                 Selecionar arquivo
               </label>
-
-              {mediaFile && (
-                <p className="mt-2 text-sm text-zinc-300">
-                  Arquivo selecionado: {mediaFile.name}
-                </p>
-              )}
+              {/* Botão de câmera customizado */}
+              <button
+                type="button"
+                className="inline-flex items-center justify-center bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-600 text-lg"
+                title="Abrir câmera para foto ou vídeo"
+                onClick={() => setShowCamera(true)}
+              >
+                <MdCameraAlt className="w-6 h-6" />
+              </button>
             </div>
+            {showCamera && (
+              <CameraModal
+                onClose={() => setShowCamera(false)}
+                onCapture={(file) => {
+                  setShowCamera(false);
+                  setMediaFile(file);
+                  setMediaPreview(URL.createObjectURL(file));
+                }}
+              />
+            )}
+            {mediaFile && (
+              <p className="mt-2 text-sm text-zinc-300">
+                Arquivo selecionado: {mediaFile.name}
+              </p>
+            )}
             {mediaPreview && (
               <div className="relative mt-2">
                 {mediaFile?.type.startsWith('image/') ? (
