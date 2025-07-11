@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { listenUnreadMessages } from "@/lib/chatUnreadService";
 import { listenUnreadNotifications } from "@/lib/notificationUnreadService";
-import { MdHome, MdChat, MdExplore, MdNotifications, MdSettings } from "react-icons/md";
+import { MdHome, MdChat, MdExplore, MdNotifications, MdSettings, MdMenu, MdClose } from "react-icons/md";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -15,6 +15,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -41,8 +42,14 @@ export default function Navbar() {
           <img src="/logo.png" alt="TibiaSocial Logo" style={{ width: 110, height: 'auto', maxHeight: 120 }} />
         </Link>
       </div>
-      {/* Navegação centralizada com ícones */}
-      <div className="flex gap-6 items-center">
+      {/* Menu mobile hamburguer */}
+      <div className="flex md:hidden">
+        <button onClick={() => setMobileMenuOpen(true)} className="p-2 rounded hover:bg-zinc-800 focus:outline-none">
+          <MdMenu className="w-8 h-8 text-zinc-200" />
+        </button>
+      </div>
+      {/* Navegação centralizada com ícones (desktop) */}
+      <div className="hidden md:flex gap-6 items-center">
         <Link href="/feed" className="text-zinc-200 hover:text-blue-400 transition text-xl" title="Feed">
           <MdHome className="w-6 h-6" />
         </Link>
@@ -71,15 +78,14 @@ export default function Navbar() {
           <UserSearchBar onSelect={handleUserSelect} />
         </div>
       </div>
-      {/* Perfil à direita */}
-      <div className="flex items-center gap-4">
+      {/* Perfil à direita (desktop) */}
+      <div className="hidden md:flex items-center gap-4">
         {user ? (
           <>
             <Link href={`/profile`} className="flex items-center gap-2 group">
               <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-8 h-8 rounded-full border-2 border-zinc-700 group-hover:border-blue-400 transition" />
               <span className="hidden md:inline text-zinc-200 font-semibold group-hover:text-blue-400 transition">{user.displayName || 'Perfil'}</span>
             </Link>
-            {/* Ícone de configurações */}
             <button
               title="Configurações da conta"
               onClick={() => router.push('/settings')}
@@ -110,6 +116,31 @@ export default function Navbar() {
           </Link>
         )}
       </div>
+      {/* Menu mobile lateral */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex">
+          <div className="w-64 bg-zinc-900 h-full shadow-lg flex flex-col p-6 gap-6 relative animate-slideInLeft">
+            <button onClick={() => setMobileMenuOpen(false)} className="absolute top-4 right-4 p-2 rounded hover:bg-zinc-800">
+              <MdClose className="w-7 h-7 text-zinc-400" />
+            </button>
+            <Link href="/feed" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}><MdHome /> Feed</Link>
+            <Link href="/chat" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}><MdChat /> Mensagens</Link>
+            <Link href="/explore" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}><MdExplore /> Explorar</Link>
+            <Link href="/notifications" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}><MdNotifications /> Notificações</Link>
+            <Link href="/profile" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}>
+              <img src={user?.photoURL || '/default-avatar.png'} alt="avatar" className="w-7 h-7 rounded-full border-2 border-zinc-700" /> Perfil
+            </Link>
+            <button onClick={() => { setMobileMenuOpen(false); router.push('/settings'); }} className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg"><MdSettings /> Configurações</button>
+            {user?.isAdmin && (
+              <Link href="/admin" className="flex items-center gap-3 text-yellow-400 hover:text-yellow-500 text-lg" onClick={() => setMobileMenuOpen(false)}>
+                Painel Admin
+              </Link>
+            )}
+            <button onClick={logout} className="flex items-center gap-3 text-red-400 hover:text-red-600 text-lg mt-4"><MdClose /> Sair</button>
+          </div>
+          <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
+        </div>
+      )}
     </nav>
   );
 }
