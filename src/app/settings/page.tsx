@@ -88,7 +88,7 @@ export default function SettingsPage() {
                     (window as any).currentPhotoURL = user.photoURL || '';
                   }
                 }} />
-                <img id="avatar-preview" src={user.photoURL || '/default-avatar.png'} alt="Foto atual" className="w-16 h-16 rounded-full mt-2 border-2 border-zinc-700" />
+                <img id="avatar-preview" src={user.photoURL || '/default-avatar.png'} alt="Foto atual" className="w-24 h-24 rounded-full object-cover border-2 border-zinc-700 mt-2" />
               </label>
               <label className="flex flex-col gap-1 text-zinc-200">
                 E-mail:
@@ -178,11 +178,6 @@ export default function SettingsPage() {
             >
               Excluir conta
             </button>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-zinc-200 mb-2">Aparência</h2>
-            <button className="px-4 py-2 rounded bg-zinc-800 text-zinc-100 font-semibold hover:bg-zinc-700 w-full mb-2">Idioma</button>
-            <button className="px-4 py-2 rounded bg-zinc-800 text-zinc-100 font-semibold hover:bg-zinc-700 w-full mb-2">Tema</button>
           </div>
         </div>
       </div>
