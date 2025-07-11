@@ -80,6 +80,17 @@ export default function Navbar() {
               <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-8 h-8 rounded-full border-2 border-zinc-700 group-hover:border-blue-400 transition" />
               <span className="hidden md:inline text-zinc-200 font-semibold group-hover:text-blue-400 transition">{user.displayName || 'Perfil'}</span>
             </Link>
+            {/* Ícone de configurações */}
+            <button
+              title="Configurações da conta"
+              onClick={() => router.push('/settings')}
+              className="p-2 rounded-full hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-zinc-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 2.25c.414-1.036 1.836-1.036 2.25 0l.217.543a1.125 1.125 0 001.671.592l.497-.287c.966-.56 2.122.302 1.962 1.39l-.09.574a1.125 1.125 0 001.07 1.294l.564.047c1.073.09 1.516 1.426.741 2.143l-.415.38a1.125 1.125 0 000 1.662l.415.38c.775.717.332 2.053-.741 2.143l-.564.047a1.125 1.125 0 00-1.07 1.294l.09.574c.16 1.088-.996 1.95-1.962 1.39l-.497-.287a1.125 1.125 0 00-1.671.592l-.217.543c-.414 1.036-1.836 1.036-2.25 0l-.217-.543a1.125 1.125 0 00-1.671-.592l-.497.287c-.966.56-2.122-.302-1.962-1.39l.09-.574A1.125 1.125 0 005.25 12.75l-.564-.047c-1.073-.09-1.516-1.426-.741-2.143l.415-.38a1.125 1.125 0 000-1.662l-.415-.38c-.775-.717-.332-2.053.741-2.143l.564-.047A1.125 1.125 0 006.32 5.25l-.09-.574c-.16-1.088.996-1.95 1.962-1.39l.497.287a1.125 1.125 0 001.671-.592l.217-.543z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
             {/* Botão admin */}
             {user.isAdmin && (
               <Link href="/admin" className="bg-yellow-500 hover:bg-yellow-600 text-zinc-900 font-bold px-4 py-2 rounded transition ml-2" title="Painel Admin">

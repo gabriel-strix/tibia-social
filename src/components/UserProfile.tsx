@@ -17,7 +17,7 @@ interface UserProfileProps {
 export default function UserProfile({ uid }: UserProfileProps) {
   const { user: currentUser, loading, logout } = useAuth();
   const isOwnProfile = currentUser?.uid === uid;
-  const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string; characters?: Character[] } | null>(null);
+  const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string; characters?: Character[]; blockedUsers?: string[] } | null>(null);
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -54,6 +54,20 @@ export default function UserProfile({ uid }: UserProfileProps) {
       setNewCharacter({ name: "", level: 1, vocation: "", world: "", type: characters.some(c => c.type === "main") ? "maker" : "main" });
     }
   }, [showAddCharacterForm, characters, isOwnProfile]);
+
+  // Verifica se o usuário logado está bloqueado por este perfil
+  const isBlocked = profile?.blockedUsers?.includes(currentUser?.uid);
+
+  if (isBlocked) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-950">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-8 mt-8">
+          <h1 className="text-2xl font-bold text-zinc-100 mb-4">Usuário não encontrado</h1>
+          <p className="text-zinc-400">Este perfil não está disponível.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) return <p>Carregando...</p>;
   if (!profile) return <p>Carregando perfil...</p>;
@@ -121,6 +135,32 @@ export default function UserProfile({ uid }: UserProfileProps) {
                   Enviar mensagem
                 </button>
                 <FollowButton targetUid={uid} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition font-semibold ml-2" />
+                {/* Botão Bloquear usuário */}
+                {currentUser?.blockedUsers?.includes(uid) ? (
+                  <button
+                    onClick={async () => {
+                      const { unblockUserAndRestore } = await import("@/lib/userService");
+                      await unblockUserAndRestore(currentUser.uid, uid);
+                      alert('Usuário desbloqueado!');
+                      window.location.reload();
+                    }}
+                    className="ml-2 px-4 py-2 rounded bg-zinc-700 hover:bg-zinc-800 text-zinc-300 font-semibold"
+                  >
+                    Desbloquear usuário
+                  </button>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      const { blockUserAndUnfollow } = await import("@/lib/userService");
+                      await blockUserAndUnfollow(currentUser.uid, uid);
+                      alert('Usuário bloqueado!');
+                      window.location.reload();
+                    }}
+                    className="ml-2 px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white font-semibold"
+                  >
+                    Bloquear usuário
+                  </button>
+                )}
               </>
             )}
           </div>

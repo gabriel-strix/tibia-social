@@ -23,13 +23,21 @@ export default function NotificationsPage() {
     if (!user) return;
     const q = query(collection(db, "notifications", user.uid, "items"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
-      // Unifica notificações de mensagem recebida por usuário
       const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification & { id: string }));
+      // Filtra notificações conforme preferências do usuário
+      const prefs = user.notificationPrefs || {};
+      const filtered = all.filter(n => {
+        if (n.type === "like" && prefs.like === false) return false;
+        if (n.type === "comment" && prefs.comment === false) return false;
+        if (n.type === "message" && prefs.message === false) return false;
+        if (n.type === "follow" && prefs.follow === false) return false;
+        return true;
+      });
+      // Unifica notificações de mensagem recebida por usuário
       const grouped: Record<string, Notification & { id: string }> = {};
       const result: (Notification & { id: string })[] = [];
-      for (const n of all) {
+      for (const n of filtered) {
         if (n.type === "message" && n.fromUid) {
-          // Se já existe, mantém só a mais recente
           if (!grouped[n.fromUid] || (n.createdAt?.toMillis?.() > grouped[n.fromUid].createdAt?.toMillis?.())) {
             grouped[n.fromUid] = n;
           }
@@ -37,9 +45,7 @@ export default function NotificationsPage() {
           result.push(n);
         }
       }
-      // Adiciona as notificações de mensagem unificadas
       result.push(...Object.values(grouped));
-      // Ordena por data (desc)
       result.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       setNotifications(result);
     });

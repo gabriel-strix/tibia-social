@@ -97,15 +97,22 @@ export default function FeedPage() {
 
   useEffect(() => {
     if (!user) return;
-
     const uids = [...following, user.uid];
     const postsQuery =
       uids.length > 0
         ? query(collection(db, "posts"), where("uid", "in", uids), orderBy("createdAt", "desc"))
         : query(collection(db, "posts"), where("uid", "==", user.uid), orderBy("createdAt", "desc"));
 
-    const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
-      const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Post));
+    const unsubscribe = onSnapshot(postsQuery, async (snapshot) => {
+      let list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Post));
+      // Filtra posts de usuários que bloquearam o usuário logado
+      const blockedBy: string[] = [];
+      for (const post of list) {
+        const userDoc = await getDoc(doc(db, "users", post.uid));
+        const blockedUsers = userDoc.exists() ? userDoc.data().blockedUsers || [] : [];
+        if (blockedUsers.includes(user.uid)) blockedBy.push(post.uid);
+      }
+      list = list.filter(post => !blockedBy.includes(post.uid));
       setPosts(list);
     });
 

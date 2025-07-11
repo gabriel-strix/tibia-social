@@ -102,6 +102,16 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if ((!text.trim() && !mediaFile && !audioBlob) || !user) return;
+    // Verifica se o destinatário bloqueou o usuário logado
+    const { doc, getDoc } = await import('firebase/firestore');
+    const db = (await import('@/lib/firestore')).default;
+    const otherUserDoc = await getDoc(doc(db, 'users', otherUid));
+    const blockedUsers = otherUserDoc.exists() ? otherUserDoc.data().blockedUsers || [] : [];
+    if (blockedUsers.includes(user.uid)) {
+      // Exibe mensagem genérica de usuário inexistente
+      alert('Usuário não encontrado.');
+      return;
+    }
     let fileToSend = mediaFile;
     if (mediaFile && mediaFile.type.startsWith('image/') && !mediaFile.type.includes('webp')) {
       try {
