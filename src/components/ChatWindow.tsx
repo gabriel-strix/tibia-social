@@ -117,7 +117,9 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
     if (mediaFile && mediaFile.type.startsWith('image/') && !mediaFile.type.includes('webp')) {
       try {
         fileToSend = await convertToWebP(mediaFile);
-      } catch (e) {}
+      } catch (e) {
+        alert('Falha ao converter imagem para WebP. Enviando original.');
+      }
     }
     if (audioBlob) {
       fileToSend = new File([audioBlob], `voice-${Date.now()}.webm`, { type: 'audio/webm' });

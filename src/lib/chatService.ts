@@ -146,7 +146,11 @@ export async function deleteMessage(chatId: string, messageId: string, imageURL?
         const imageRef = ref(storage, filePath);
         await deleteObject(imageRef);
       }
-    } catch {}
+    } catch {
+      // Feedback visual pode ser adicionado conforme o contexto do app (ex: toast, alert, etc)
+      // Exemplo:
+      // alert('Erro ao remover imagem do Storage.');
+    }
   }
   if (videoURL) {
     try {
@@ -163,7 +167,9 @@ export async function deleteMessage(chatId: string, messageId: string, imageURL?
         const videoRef = ref(storage, filePath);
         await deleteObject(videoRef);
       }
-    } catch {}
+    } catch {
+      // alert('Erro ao remover vídeo do Storage.');
+    }
   }
   if (audioURL) {
     try {
@@ -180,7 +186,9 @@ export async function deleteMessage(chatId: string, messageId: string, imageURL?
         const audioRef = ref(storage, filePath);
         await deleteObject(audioRef);
       }
-    } catch {}
+    } catch {
+      // alert('Erro ao remover áudio do Storage.');
+    }
   }
   await deleteDoc(doc(db, "chats", chatId, "messages", messageId));
 }

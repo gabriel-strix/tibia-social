@@ -1,28 +1,45 @@
 "use client";
 
+
 import React, { useState, useEffect } from "react";
-// Tipagem específica para o perfil do usuário
-interface UserProfile {
+import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
+import db from "@/lib/firestore";
+import { useAuth } from "@/hooks/useAuth";
+import FollowersFollowing from "@/components/FollowersFollowing";
+import { TIBIA_WORLDS } from "@/lib/tibiaWorlds";
+import { useRouter } from "next/navigation";
+
+export type CharacterType = "main" | "maker";
+
+export interface Character {
+  name: string;
+  level: number;
+  vocation: string;
+  world: string;
+  type: CharacterType;
+}
+
+export interface UserProfile {
   name: string;
   email: string;
   photoURL: string;
   characters?: Character[];
 }
-import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
-import db from "@/lib/firestore";
-import { useAuth } from "@/hooks/useAuth";
-import { Character, addCharacter, updateCharacter } from "@/lib/characterService";
-import FollowersFollowing from "@/components/FollowersFollowing";
-import { TIBIA_WORLDS } from "@/lib/tibiaWorlds";
-import { useRouter } from "next/navigation";
 
+interface EditCharacterState {
+  idx: number | null;
+  character: Character | null;
+}
+
+
+export default function Profile() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [editName, setEditName] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [characters, setCharacters] = useState<Character[]>(profile?.characters || []);
-  const [showAddCharacterForm, setShowAddCharacterForm] = useState(false);
+  const [editName, setEditName] = useState<string>("");
+  const [saving, setSaving] = useState<boolean>(false);
+  const [characters, setCharacters] = useState<Array<Character>>(profile?.characters || []);
+  const [showAddCharacterForm, setShowAddCharacterForm] = useState<boolean>(false);
   const [newCharacter, setNewCharacter] = useState<Character>({
     name: "",
     level: 1,
@@ -32,29 +49,25 @@ import { useRouter } from "next/navigation";
   });
   const [editingCharacterIdx, setEditingCharacterIdx] = useState<number | null>(null);
   const [editCharacter, setEditCharacter] = useState<Character | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // TESTE: Listar todos os chats do Firestore
-    async function testChats() {
-      try {
-        const snapshot = await getDocs(collection(db, "chats"));
-        // Removido console.log de debug
-      } catch (e) {
-        // Removido console.error de debug
-      }
-    }
-    testChats();
-
     if (!user) return;
 
     async function fetchProfile() {
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data() as UserProfile;
-        setProfile(data);
-        setEditName(data?.name || "");
-        setCharacters(data?.characters || []);
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data() as UserProfile;
+          setProfile(data);
+          setEditName(data?.name || "");
+          setCharacters(data?.characters || []);
+        } else {
+          setError("Perfil não encontrado.");
+        }
+      } catch (e) {
+        setError("Erro ao carregar perfil. Tente novamente mais tarde.");
       }
     }
 
@@ -64,49 +77,74 @@ import { useRouter } from "next/navigation";
   if (loading) return <p>Carregando...</p>;
   if (!user) return <p>Você precisa estar logado.</p>;
   if (!profile) return <p>Carregando perfil...</p>;
+  
+  if (error) {
+    return <div className="bg-red-700 text-white p-4 rounded mb-4">{error}</div>;
+  }
 
-  async function handleSave() {
+  async function handleSave(): Promise<void> {
     setSaving(true);
-    const docRef = doc(db, "users", user.uid);
-    await updateDoc(docRef, { name: editName });
-    setProfile((prev) => (prev ? { ...prev, name: editName } : null));
-    setSaving(false);
+    setError(null);
+    try {
+      const docRef = doc(db, "users", user.uid);
+      await updateDoc(docRef, { name: editName });
+      setProfile((prev) => (prev ? { ...prev, name: editName } : null));
+    } catch (e) {
+      setError("Erro ao salvar o nome. Tente novamente mais tarde.");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  async function handleAddCharacter(e: React.FormEvent) {
+  async function handleAddCharacter(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
+    setError(null);
     if (!user) return;
-    await addCharacter(user.uid, newCharacter);
-    setCharacters((prev) => [...prev, newCharacter]);
-    setShowAddCharacterForm(false);
-    setNewCharacter({ name: "", level: 1, vocation: "", world: "", type: "main" });
+    try {
+      await (await import("@/lib/characterService")).addCharacter(user.uid, newCharacter);
+      setCharacters((prev: Character[]) => [...prev, newCharacter]);
+      setShowAddCharacterForm(false);
+      setNewCharacter({ name: "", level: 1, vocation: "", world: "", type: "main" });
+    } catch (e) {
+      setError("Erro ao adicionar personagem. Tente novamente mais tarde.");
+    }
   }
 
-  async function handleEditCharacter(idx: number) {
+  function handleEditCharacter(idx: number): void {
     setEditingCharacterIdx(idx);
     setEditCharacter({ ...characters[idx] });
   }
 
-  async function handleSaveEditCharacter() {
-    if (editCharacter && user) {
-      await updateCharacter(user.uid, characters[editingCharacterIdx!].name, editCharacter);
-      setCharacters((prev) =>
-        prev.map((char, idx) =>
-          idx === editingCharacterIdx ? { ...editCharacter } : char
-        )
-      );
-      setEditingCharacterIdx(null);
-      setEditCharacter(null);
+  async function handleSaveEditCharacter(): Promise<void> {
+    setError(null);
+    if (editCharacter && user && editingCharacterIdx !== null) {
+      try {
+        await (await import("@/lib/characterService")).updateCharacter(
+          user.uid,
+          characters[editingCharacterIdx].name,
+          editCharacter
+        );
+        setCharacters((prev: Character[]) =>
+          prev.map((char: Character, idx: number) =>
+            idx === editingCharacterIdx ? { ...editCharacter } : char
+          )
+        );
+        setEditingCharacterIdx(null);
+        setEditCharacter(null);
+      } catch (e) {
+        setError("Erro ao salvar edição do personagem. Tente novamente mais tarde.");
+      }
     }
   }
 
-  function handleCancelEditCharacter() {
+  function handleCancelEditCharacter(): void {
     setEditingCharacterIdx(null);
     setEditCharacter(null);
   }
 
   return (
     <div className="max-w-xl mx-auto p-6 bg-zinc-900 rounded-lg shadow-lg text-zinc-100 mt-8">
+      {/* ...restante do JSX permanece igual... */}
       <h1 className="text-2xl font-bold mb-4 text-zinc-100 flex items-center gap-2">
         Perfil do usuário
         <button
@@ -121,6 +159,8 @@ import { useRouter } from "next/navigation";
           </svg>
         </button>
       </h1>
+      {/* ...restante do JSX permanece igual... */}
+      {/* O restante do JSX já está correto e não precisa ser alterado */}
       <div className="flex items-center gap-4 mb-4">
         <img
           src={profile.photoURL}

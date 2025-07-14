@@ -170,7 +170,7 @@ export default function FeedPage() {
         try {
           fileToUpload = await convertToWebP(file);
         } catch (e) {
-          console.warn('Falha ao converter para WebP, enviando original:', e);
+          alert('Falha ao converter imagem para WebP. Enviando original.');
         }
       }
       const imageRef = ref(storage, `posts/${postId}/${fileToUpload.name}`);
@@ -209,14 +209,14 @@ export default function FeedPage() {
           const result = await uploadMedia(mediaFile, docRef.id);
           await updateDoc(doc(db, "posts", docRef.id), result);
         } catch (error) {
-          console.error("Erro ao fazer upload/atualizar mídia:", error);
+          alert('Erro ao fazer upload/atualizar mídia.');
         }
       }
       setText("");
       setMediaFile(null);
       setMediaPreview(null);
     } catch (error) {
-      console.error("Erro ao criar post:", error);
+      alert('Erro ao criar post.');
     }
   }
 
@@ -243,7 +243,7 @@ export default function FeedPage() {
           await import('firebase/storage').then(({ deleteObject }) => deleteObject(imageRef));
         }
       } catch (e) {
-        console.warn('Erro ao remover imagem do Storage:', e);
+        alert('Erro ao remover imagem do Storage.');
       }
     }
     // Remove vídeo do Storage se existir
@@ -264,7 +264,7 @@ export default function FeedPage() {
           await import('firebase/storage').then(({ deleteObject }) => deleteObject(videoRef));
         }
       } catch (e) {
-        console.warn('Erro ao remover vídeo do Storage:', e);
+        alert('Erro ao remover vídeo do Storage.');
       }
     }
     await deleteDoc(doc(db, "posts", postId));
