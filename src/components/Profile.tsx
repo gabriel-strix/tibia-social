@@ -1,3 +1,4 @@
+import CharacterForm from "@/components/CharacterForm";
 "use client";
 
 
@@ -33,6 +34,7 @@ interface EditCharacterState {
 
 
 export default function Profile() {
+
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -40,39 +42,13 @@ export default function Profile() {
   const [saving, setSaving] = useState<boolean>(false);
   const [characters, setCharacters] = useState<Array<Character>>(profile?.characters || []);
   const [showAddCharacterForm, setShowAddCharacterForm] = useState<boolean>(false);
-  const [newCharacter, setNewCharacter] = useState<Character>({
-    name: "",
-    level: 1,
-    vocation: "",
-    world: "",
-    type: "main"
-  });
+  // newCharacter removido, agora é controlado apenas pelo CharacterForm
   const [editingCharacterIdx, setEditingCharacterIdx] = useState<number | null>(null);
   const [editCharacter, setEditCharacter] = useState<Character | null>(null);
+  // Estado para mensagens de erro
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
 
-    async function fetchProfile() {
-      try {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data() as UserProfile;
-          setProfile(data);
-          setEditName(data?.name || "");
-          setCharacters(data?.characters || []);
-        } else {
-          setError("Perfil não encontrado.");
-        }
-      } catch (e) {
-        setError("Erro ao carregar perfil. Tente novamente mais tarde.");
-      }
-    }
-
-    fetchProfile();
-  }, [user]);
 
   if (loading) return <p>Carregando...</p>;
   if (!user) return <p>Você precisa estar logado.</p>;
@@ -96,19 +72,7 @@ export default function Profile() {
     }
   }
 
-  async function handleAddCharacter(e: React.FormEvent<HTMLFormElement>): Promise<void> {
-    e.preventDefault();
-    setError(null);
-    if (!user) return;
-    try {
-      await (await import("@/lib/characterService")).addCharacter(user.uid, newCharacter);
-      setCharacters((prev: Character[]) => [...prev, newCharacter]);
-      setShowAddCharacterForm(false);
-      setNewCharacter({ name: "", level: 1, vocation: "", world: "", type: "main" });
-    } catch (e) {
-      setError("Erro ao adicionar personagem. Tente novamente mais tarde.");
-    }
-  }
+
 
   function handleEditCharacter(idx: number): void {
     setEditingCharacterIdx(idx);
@@ -209,74 +173,33 @@ export default function Profile() {
             className="bg-zinc-800 rounded p-3 flex flex-col md:flex-row md:items-center md:gap-2 text-zinc-100 shadow border border-zinc-700"
           >
             {editingCharacterIdx === idx && editCharacter ? (
-              <form
-                onSubmit={e => { e.preventDefault(); handleSaveEditCharacter(); }}
-                className="flex flex-col md:flex-row md:items-center md:gap-2 w-full"
-              >
-                <input
-                  type="text"
-                  value={editCharacter.name}
-                  onChange={e => setEditCharacter({ ...editCharacter, name: e.target.value })}
-                  required
-                  className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="number"
-                  value={editCharacter.level}
-                  onChange={e => setEditCharacter({ ...editCharacter, level: Number(e.target.value) })}
-                  min={1}
-                  required
-                  className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <select
-                  value={editCharacter.vocation}
-                  onChange={e => setEditCharacter({ ...editCharacter, vocation: e.target.value })}
-                  required
-                  className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Selecione a vocação</option>
-                  <option value="Knight">Knight</option>
-                  <option value="Elite Knight">Elite Knight</option>
-                  <option value="Paladin">Paladin</option>
-                  <option value="Royal Paladin">Royal Paladin</option>
-                  <option value="Druid">Druid</option>
-                  <option value="Elder Druid">Elder Druid</option>
-                  <option value="Sorcerer">Sorcerer</option>
-                  <option value="Master Sorcerer">Master Sorcerer</option>
-                </select>
-                <select
-                  value={editCharacter.world}
-                  onChange={e => setEditCharacter({ ...editCharacter, world: e.target.value })}
-                  required
-                  className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Selecione o mundo</option>
-                  {TIBIA_WORLDS.map(world => (
-                    <option key={world} value={world}>{world}</option>
-                  ))}
-                </select>
-                <select
-                  value={editCharacter.type}
-                  onChange={e => setEditCharacter({ ...editCharacter, type: e.target.value as 'main' | 'maker' })}
-                  className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="main">Principal</option>
-                  <option value="maker">Maker</option>
-                </select>
-                <button
-                  type="submit"
-                  className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold ml-2"
-                >
-                  Salvar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancelEditCharacter}
-                  className="px-3 py-1 rounded bg-zinc-700 hover:bg-zinc-800 text-white font-semibold ml-2"
-                >
-                  Cancelar
-                </button>
-              </form>
+              <CharacterForm
+                mode="edit"
+                initialData={editCharacter}
+                onSave={async (char) => {
+                  setError(null);
+                  if (user && editingCharacterIdx !== null) {
+                    try {
+                      await (await import("@/lib/characterService")).updateCharacter(
+                        user.uid,
+                        characters[editingCharacterIdx].name,
+                        char
+                      );
+                      setCharacters((prev: Character[]) =>
+                        prev.map((c, i) => i === editingCharacterIdx ? { ...char } : c)
+                      );
+                      setEditingCharacterIdx(null);
+                      setEditCharacter(null);
+                    } catch (e) {
+                      setError("Erro ao salvar edição do personagem. Tente novamente mais tarde.");
+                    }
+                  }
+                }}
+                onCancel={() => {
+                  setEditingCharacterIdx(null);
+                  setEditCharacter(null);
+                }}
+              />
             ) : (
               <>
                 <b className="text-zinc-100">{char.name}</b>
@@ -298,75 +221,35 @@ export default function Profile() {
         ))}
       </ul>
       <button
-        onClick={() => setShowAddCharacterForm((v) => !v)}
+        onClick={() => {
+          setShowAddCharacterForm((v) => !v);
+        }}
         className="mt-2 px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors mb-2"
       >
         {showAddCharacterForm ? "Cancelar" : "Adicionar personagem"}
       </button>
       {showAddCharacterForm && (
-        <form
-          onSubmit={handleAddCharacter}
-          className="flex flex-col gap-3 bg-zinc-800 p-4 rounded border border-zinc-700 mt-3"
-        >
-          <input
-            type="text"
-            placeholder="Nome"
-            value={newCharacter.name}
-            onChange={e => setNewCharacter({ ...newCharacter, name: e.target.value })}
-            required
-            className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="flex flex-col gap-3 bg-zinc-800 p-4 rounded border border-zinc-700 mt-3">
+          <CharacterForm
+            onSave={async (char) => {
+              if (!user) return;
+              setError(null);
+              try {
+                await (await import("@/lib/characterService")).addCharacter(user.uid, char);
+                setCharacters((prev: Character[]) => [...prev, char]);
+                setShowAddCharacterForm(false);
+              } catch (e) {
+                setError("Erro ao adicionar personagem. Tente novamente mais tarde.");
+              }
+            }}
+            onCancel={() => {
+              setShowAddCharacterForm(false);
+              setError(null);
+            }}
+            mode="add"
           />
-          <input
-            type="number"
-            placeholder="Nível"
-            value={newCharacter.level}
-            onChange={e => setNewCharacter({ ...newCharacter, level: Number(e.target.value) })}
-            min={1}
-            required
-            className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <select
-            value={newCharacter.vocation}
-            onChange={e => setNewCharacter({ ...newCharacter, vocation: e.target.value })}
-            required
-            className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Selecione a vocação</option>
-            <option value="Knight">Knight</option>
-            <option value="Elite Knight">Elite Knight</option>
-            <option value="Paladin">Paladin</option>
-            <option value="Royal Paladin">Royal Paladin</option>
-            <option value="Druid">Druid</option>
-            <option value="Elder Druid">Elder Druid</option>
-            <option value="Sorcerer">Sorcerer</option>
-            <option value="Master Sorcerer">Master Sorcerer</option>
-          </select>
-          <select
-            value={newCharacter.world}
-            onChange={e => setNewCharacter({ ...newCharacter, world: e.target.value })}
-            required
-            className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Selecione o mundo</option>
-            {TIBIA_WORLDS.map(world => (
-              <option key={world} value={world}>{world}</option>
-            ))}
-          </select>
-          <select
-            value={newCharacter.type}
-            onChange={e => setNewCharacter({ ...newCharacter, type: e.target.value as "main" | "maker" })}
-            className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="main">Principal</option>
-            <option value="maker">Maker</option>
-          </select>
-          <button
-            type="submit"
-            className="mt-2 px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
-          >
-            Salvar personagem
-          </button>
-        </form>
+          {error && <span className="text-red-400 text-sm">{error}</span>}
+        </div>
       )}
 
       <hr className="my-6 border-zinc-700" />

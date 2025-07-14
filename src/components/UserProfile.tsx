@@ -5,6 +5,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import db from "@/lib/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import { Character, addCharacter, updateCharacter, deleteCharacter } from "@/lib/characterService";
+import CharacterForm from "@/components/CharacterForm";
 import FollowersFollowing from "@/components/FollowersFollowing";
 import { TIBIA_WORLDS } from "@/lib/tibiaWorlds";
 import UserPostsGrid from "@/components/UserPostsGrid";
@@ -22,13 +23,7 @@ export default function UserProfile({ uid }: UserProfileProps) {
   const [saving, setSaving] = useState(false);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [showAddCharacterForm, setShowAddCharacterForm] = useState(false);
-  const [newCharacter, setNewCharacter] = useState<Character>({
-    name: "",
-    level: 1,
-    vocation: "",
-    world: "",
-    type: "main"
-  });
+  // newCharacter removido, CharacterForm será usado
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
   const [editCharData, setEditCharData] = useState<Character | null>(null);
 
@@ -47,13 +42,7 @@ export default function UserProfile({ uid }: UserProfileProps) {
     fetchProfile();
   }, [uid]);
 
-  // Sempre que abrir o formulário, definir o tipo padrão corretamente
-  useEffect(() => {
-    if (!isOwnProfile) return;
-    if (showAddCharacterForm) {
-      setNewCharacter({ name: "", level: 1, vocation: "", world: "", type: characters.some(c => c.type === "main") ? "maker" : "main" });
-    }
-  }, [showAddCharacterForm, characters, isOwnProfile]);
+  // useEffect removido, CharacterForm gerencia estado interno
 
   // Verifica se o usuário logado está bloqueado por este perfil
   const isBlocked = profile?.blockedUsers?.includes(currentUser?.uid);
@@ -80,19 +69,7 @@ export default function UserProfile({ uid }: UserProfileProps) {
     setSaving(false);
   }
 
-  async function handleAddCharacter(e: React.FormEvent) {
-    e.preventDefault();
-    if (!isOwnProfile) return;
-    // Permite apenas 1 personagem principal
-    if (newCharacter.type === "main" && characters.some(c => c.type === "main")) {
-      alert("Você só pode adicionar um personagem principal (main). Adicione apenas makers agora.");
-      return;
-    }
-    await addCharacter(uid, newCharacter);
-    setCharacters((prev) => [...prev, newCharacter]);
-    setShowAddCharacterForm(false);
-    setNewCharacter({ name: "", level: 1, vocation: "", world: "", type: characters.some(c => c.type === "main") ? "maker" : "main" });
-  }
+  // handleAddCharacter removido, CharacterForm será usado
 
   async function handleEditCharacter(char: Character) {
     setEditingCharacter(char);
@@ -178,45 +155,20 @@ export default function UserProfile({ uid }: UserProfileProps) {
           {[...characters].sort((a, b) => (a.type === "main" ? -1 : b.type === "main" ? 1 : 0)).map((char, idx) => (
             <div key={idx} className="bg-zinc-800 border border-zinc-700 rounded-lg p-4 flex flex-col items-center shadow">
               {editingCharacter?.name === char.name ? (
-                <form onSubmit={handleSaveEditCharacter} className="flex flex-col gap-2 w-full items-center">
-                  <input type="text" value={editCharData?.name || ""} onChange={e => setEditCharData({ ...editCharData!, name: e.target.value })} required className="border border-zinc-700 rounded px-2 py-1 w-32 bg-zinc-900 text-zinc-100" />
-                  <input type="number" value={editCharData?.level || 1} onChange={e => setEditCharData({ ...editCharData!, level: Number(e.target.value) })} min={1} required className="border border-zinc-700 rounded px-2 py-1 w-20 bg-zinc-900 text-zinc-100" />
-                  <select
-                    value={editCharData?.vocation || ""}
-                    onChange={e => setEditCharData({ ...editCharData!, vocation: e.target.value })}
-                    required
-                    className="border border-zinc-700 rounded px-2 py-1 w-32 bg-zinc-900 text-zinc-100"
-                  >
-                    <option value="">Selecione a vocação</option>
-                    <option value="Knight">Knight</option>
-                    <option value="Elite Knight">Elite Knight</option>
-                    <option value="Paladin">Paladin</option>
-                    <option value="Royal Paladin">Royal Paladin</option>
-                    <option value="Druid">Druid</option>
-                    <option value="Elder Druid">Elder Druid</option>
-                    <option value="Sorcerer">Sorcerer</option>
-                    <option value="Master Sorcerer">Master Sorcerer</option>
-                  </select>
-                  <select
-                    value={editCharData?.world || ""}
-                    onChange={e => setEditCharData({ ...editCharData!, world: e.target.value })}
-                    required
-                    className="border border-zinc-700 rounded px-2 py-1 w-32 bg-zinc-900 text-zinc-100"
-                  >
-                    <option value="">Selecione o mundo</option>
-                    {TIBIA_WORLDS.map(world => (
-                      <option key={world} value={world}>{world}</option>
-                    ))}
-                  </select>
-                  <select value={editCharData?.type || "maker"} onChange={e => setEditCharData({ ...editCharData!, type: e.target.value as 'main' | 'maker' })} className="border border-zinc-700 rounded px-2 py-1 bg-zinc-900 text-zinc-100">
-                    <option value="main">Principal</option>
-                    <option value="maker">Maker</option>
-                  </select>
-                  <div className="flex gap-2 mt-2">
-                    <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">Salvar</button>
-                    <button type="button" onClick={() => { setEditingCharacter(null); setEditCharData(null); }} className="text-zinc-400 hover:text-zinc-200 px-3 py-1 rounded text-sm">Cancelar</button>
-                  </div>
-                </form>
+                <CharacterForm
+                  mode="edit"
+                  initialData={editCharData || undefined}
+                  onSave={async (updatedChar) => {
+                    await updateCharacter(uid, editingCharacter!.name, updatedChar);
+                    setCharacters((prev) => prev.map(c => c.name === editingCharacter!.name ? updatedChar : c));
+                    setEditingCharacter(null);
+                    setEditCharData(null);
+                  }}
+                  onCancel={() => {
+                    setEditingCharacter(null);
+                    setEditCharData(null);
+                  }}
+                />
               ) : (
                 <>
                   <b className="text-zinc-100 text-lg mb-1">{char.name}</b>
@@ -242,57 +194,22 @@ export default function UserProfile({ uid }: UserProfileProps) {
               {showAddCharacterForm ? "Cancelar" : "Adicionar personagem"}
             </button>
             {showAddCharacterForm && (
-              <form onSubmit={handleAddCharacter} className="mt-4 flex flex-wrap gap-2 items-center bg-zinc-800 border border-zinc-700 rounded-lg p-4">
-                <input
-                  type="text"
-                  placeholder="Nome"
-                  value={newCharacter.name}
-                  onChange={e => setNewCharacter({ ...newCharacter, name: e.target.value })}
-                  required
-                  className="border border-zinc-700 rounded px-2 py-1 w-32 bg-zinc-900 text-zinc-100"
+              <div className="mt-4 flex flex-wrap gap-2 items-center bg-zinc-800 border border-zinc-700 rounded-lg p-4">
+                <CharacterForm
+                  onSave={async (char) => {
+                    // Permite apenas 1 personagem principal
+                    if (char.type === "main" && characters.some(c => c.type === "main")) {
+                      alert("Você só pode adicionar um personagem principal (main). Adicione apenas makers agora.");
+                      return;
+                    }
+                    await addCharacter(uid, char);
+                    setCharacters((prev) => [...prev, char]);
+                    setShowAddCharacterForm(false);
+                  }}
+                  onCancel={() => setShowAddCharacterForm(false)}
+                  mode="add"
                 />
-                <input
-                  type="number"
-                  placeholder="Nível"
-                  value={newCharacter.level}
-                  onChange={e => setNewCharacter({ ...newCharacter, level: Number(e.target.value) })}
-                  min={1}
-                  required
-                  className="border border-zinc-700 rounded px-2 py-1 w-20 bg-zinc-900 text-zinc-100"
-                />
-                <select
-                  value={newCharacter.vocation}
-                  onChange={e => setNewCharacter({ ...newCharacter, vocation: e.target.value })}
-                  required
-                  className="border border-zinc-700 rounded px-2 py-1 w-32 bg-zinc-900 text-zinc-100"
-                >
-                  <option value="">Selecione a vocação</option>
-                  <option value="Knight">Knight</option>
-                  <option value="Elite Knight">Elite Knight</option>
-                  <option value="Paladin">Paladin</option>
-                  <option value="Royal Paladin">Royal Paladin</option>
-                  <option value="Druid">Druid</option>
-                  <option value="Elder Druid">Elder Druid</option>
-                  <option value="Sorcerer">Sorcerer</option>
-                  <option value="Master Sorcerer">Master Sorcerer</option>
-                </select>
-                <select
-                  value={newCharacter.world}
-                  onChange={e => setNewCharacter({ ...newCharacter, world: e.target.value })}
-                  required
-                  className="border border-zinc-700 rounded px-2 py-1 w-32 bg-zinc-900 text-zinc-100"
-                >
-                  <option value="">Selecione o mundo</option>
-                  {TIBIA_WORLDS.map(world => (
-                    <option key={world} value={world}>{world}</option>
-                  ))}
-                </select>
-                <select value={newCharacter.type} onChange={e => setNewCharacter({ ...newCharacter, type: e.target.value as 'main' | 'maker' })} className="border border-zinc-700 rounded px-2 py-1 bg-zinc-900 text-zinc-100">
-                  <option value="main">Principal</option>
-                  <option value="maker">Maker</option>
-                </select>
-                <button type="submit" className="ml-2 bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded">Salvar personagem</button>
-              </form>
+              </div>
             )}
           </div>
         )}
