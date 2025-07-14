@@ -31,7 +31,6 @@ export default function FollowersFollowing({ profileUid, username }: Props) {
       const userDoc = await getDoc(doc(db, "users", uid));
       if (userDoc.exists()) {
         const data = userDoc.data();
-        console.log(`Dados do usuário ${uid}:`, data); // <-- debug aqui
 
         usersData.push({
           uid,

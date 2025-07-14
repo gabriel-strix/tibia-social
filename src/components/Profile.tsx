@@ -1,6 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+// Tipagem específica para o perfil do usuário
+interface UserProfile {
+  name: string;
+  email: string;
+  photoURL: string;
+  characters?: Character[];
+}
 import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 import db from "@/lib/firestore";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,10 +16,9 @@ import FollowersFollowing from "@/components/FollowersFollowing";
 import { TIBIA_WORLDS } from "@/lib/tibiaWorlds";
 import { useRouter } from "next/navigation";
 
-export default function Profile() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
-  const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string; characters?: Character[] } | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
   const [characters, setCharacters] = useState<Character[]>(profile?.characters || []);
@@ -28,17 +34,13 @@ export default function Profile() {
   const [editCharacter, setEditCharacter] = useState<Character | null>(null);
 
   useEffect(() => {
-    console.log("useEffect do Profile.tsx executado");
-
     // TESTE: Listar todos os chats do Firestore
     async function testChats() {
-      console.log("Iniciando teste de leitura da coleção chats...");
       try {
         const snapshot = await getDocs(collection(db, "chats"));
-        console.log("TESTE: chats encontrados:", snapshot.docs.length);
-        snapshot.docs.forEach(doc => console.log("chatId:", doc.id));
+        // Removido console.log de debug
       } catch (e) {
-        console.error("Erro ao buscar chats:", e);
+        // Removido console.error de debug
       }
     }
     testChats();
@@ -49,8 +51,8 @@ export default function Profile() {
       const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        const data = docSnap.data();
-        setProfile(data as any);
+        const data = docSnap.data() as UserProfile;
+        setProfile(data);
         setEditName(data?.name || "");
         setCharacters(data?.characters || []);
       }
