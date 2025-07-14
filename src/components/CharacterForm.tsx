@@ -126,7 +126,7 @@ export default function CharacterForm({ initial, initialData, onSave, onCancel, 
                 {validating ? "Validando..." : "Validar personagem"}
               </button>
               {error && <span className="text-red-400 text-sm">{error}</span>}
-              <span className="text-xs text-zinc-400">Dica: Após salvar o comentário no Tibia.com, aguarde alguns segundos antes de validar.</span>
+              <span className="text-xs text-zinc-400">Dica: Pode levar algum tempo para atualizar no site do tibia. Após salvar o comentário no Tibia.com, aguarde alguns minutos antes de validar.</span>
             </div>
           )}
           {validated && (
