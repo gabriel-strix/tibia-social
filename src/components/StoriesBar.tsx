@@ -30,13 +30,21 @@ export default function StoriesBar({ onSelectStory, onAddStory }: { onSelectStor
       const arr: Story[] = await Promise.all(
         snap.docs.map(async docSnap => {
           const data = docSnap.data();
-          // Busca o campo verified do usuário
           let verified = false;
           try {
             const userSnap = await import("firebase/firestore").then(fb => fb.getDoc(fb.doc(db, "users", data.uid)));
             if (userSnap.exists()) verified = userSnap.data().verified || false;
           } catch {}
-          return { id: docSnap.id, ...data, verified } as Story;
+          return {
+            id: docSnap.id,
+            uid: data.uid,
+            username: data.username,
+            photoURL: data.photoURL,
+            mediaURL: data.mediaURL,
+            type: data.type,
+            createdAt: data.createdAt,
+            verified
+          } as Story;
         })
       );
       setStories(arr);
