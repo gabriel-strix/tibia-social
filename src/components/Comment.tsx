@@ -48,20 +48,24 @@ export default function Comment({
   return (
     <div className="mb-3 border-b border-zinc-800 pb-3 px-2 bg-zinc-900 rounded-lg">
       <div className="flex items-center gap-2 mb-1">
-        <img
-          src={photoURL}
-          alt={name}
-          width={40}
-          height={40}
-          className="w-10 h-10 rounded-full object-cover border border-zinc-700 cursor-pointer"
-          onClick={() => router.push(`/profile/${username || uid}`)}
-        />
-        <strong
-          className="ml-2 text-zinc-100 cursor-pointer hover:underline"
-          onClick={() => router.push(`/profile/${username || uid}`)}
+        <a
+          href={username ? `/profile/${username}` : `/profile/${uid}`}
+          className="group"
         >
-          {name}
-        </strong>
+          <img
+            src={photoURL}
+            alt={name}
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-full object-cover border border-zinc-700 cursor-pointer transition duration-150 group-hover:ring-2 group-hover:ring-blue-500"
+          />
+        </a>
+        <a
+          href={username ? `/profile/${username}` : `/profile/${uid}`}
+          className="ml-2 text-zinc-100 cursor-pointer font-semibold transition-colors duration-150 group hover:text-blue-400 hover:underline"
+        >
+          <strong>{name}</strong>
+        </a>
 
         {onReport && !isOwner && (
           <button

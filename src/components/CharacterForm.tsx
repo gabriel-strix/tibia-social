@@ -83,16 +83,26 @@ export default function CharacterForm({ initial, initialData, onSave, onCancel, 
       {/* Etapa 1: Buscar personagem */}
       {(!searched && mode === "add") ? (
         <>
-          <input
-            type="text"
-            placeholder="Nome do personagem"
-            value={char.name}
-            onChange={e => { setChar({ ...char, name: e.target.value }); setError(null); }}
-            required
-            className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            autoComplete="off"
-            disabled={loading}
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Nome do personagem"
+              value={char.name}
+              onChange={e => { setChar({ ...char, name: e.target.value }); setError(null); }}
+              required
+              className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoComplete="off"
+              disabled={loading}
+            />
+            {char.name.length > 2 && (
+              <span
+                className="ml-2 px-2 py-1 rounded transition-colors duration-150 cursor-pointer bg-zinc-800 text-blue-400 hover:bg-blue-600 hover:text-white font-semibold"
+                title="Nome do personagem"
+              >
+                {char.name}
+              </span>
+            )}
+          </div>
           <button
             type="button"
             className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -136,13 +146,23 @@ export default function CharacterForm({ initial, initialData, onSave, onCancel, 
             onSubmit={e => { e.preventDefault(); if (canSave) onSave(char); }}
             className="flex flex-col gap-3"
           >
-            <input
-              type="text"
-              value={char.name}
-              disabled
-              readOnly
-              className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-400 opacity-60 cursor-not-allowed"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={char.name}
+                disabled
+                readOnly
+                className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-400 opacity-60 cursor-not-allowed"
+              />
+              {char.name.length > 2 && (
+                <span
+                  className="ml-2 px-2 py-1 rounded transition-colors duration-150 cursor-pointer bg-zinc-800 text-blue-400 hover:bg-blue-600 hover:text-white font-semibold"
+                  title="Nome do personagem"
+                >
+                  {char.name}
+                </span>
+              )}
+            </div>
             <input
               type="number"
               value={char.level}

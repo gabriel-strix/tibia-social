@@ -38,8 +38,20 @@ export default function PostPage() {
   useEffect(() => {
     if (!post) return;
     const q = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setComments(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const docs = snapshot.docs;
+      const commentsWithUsername = await Promise.all(docs.map(async (doc) => {
+        const data = doc.data();
+        // Se já tem username, retorna direto
+        if (data.username) return { id: doc.id, ...data };
+        // Busca username pelo uid
+        const { doc: docRef, getDoc } = await import("firebase/firestore");
+        const db = (await import("@/lib/firestore")).default;
+        const userDoc = await getDoc(docRef(db, "users", data.uid));
+        const username = userDoc.exists() ? userDoc.data().username : undefined;
+        return { id: doc.id, ...data, username };
+      }));
+      setComments(commentsWithUsername);
     });
     return () => unsubscribe();
   }, [postId, post]);
@@ -146,7 +158,7 @@ export default function PostPage() {
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
             <div className="flex items-center gap-3 mb-2">
               <a href={`/profile/${authorUsername || post.uid}`}>
-                <img src={post.photoURL || '/default-avatar.png'} alt={post.name} className="w-10 h-10 rounded-full border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition" />
+                <img src={post.photoURL || '/default-avatar.png'} alt={post.name} className="w-10 h-10 rounded-full object-cover border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition" />
               </a>
               <a href={`/profile/${authorUsername || post.uid}`} className="text-zinc-100 font-semibold hover:underline">
                 {post.name}
@@ -247,6 +259,7 @@ export default function PostPage() {
                 text={comment.text}
                 likes={comment.likes}
                 currentUserUid={user.uid}
+                username={comment.username}
                 onUpdate={handleUpdateComment}
                 onDelete={handleDeleteComment}
                 onLike={() => handleLikeComment(comment)}

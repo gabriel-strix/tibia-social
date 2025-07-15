@@ -36,6 +36,10 @@ import { MdComment, MdCameraAlt } from "react-icons/md";
 import RequireAuth from "@/components/RequireAuth";
 import Spinner from "@/components/Spinner";
 import dynamic from "next/dynamic";
+import StoriesBar from "@/components/StoriesBar";
+import StoryUploadModal from "@/components/StoryUploadModal";
+import StoryViewer from "@/components/StoryViewer";
+import { Story } from "@/components/StoriesBar";
 
 const CameraModal = dynamic(() => import("@/components/CameraModal"), { ssr: false });
 
@@ -67,6 +71,8 @@ export default function FeedPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [text, setText] = useState("");
+  const [showStoryModal, setShowStoryModal] = useState(false);
+  const [selectedStories, setSelectedStories] = useState<Story[] | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
@@ -494,6 +500,11 @@ export default function FeedPage() {
       <div className="flex justify-center w-full max-w-7xl mx-auto mt-8 px-2 md:px-6" id="teste">
         {/* Feed principal */}
         <div className="flex-1 max-w-2xl w-full" style={{ maxHeight: 'calc(100vh - 96px)' }}>
+          {/* StoriesBar acima do formulário de novo post */}
+          <StoriesBar
+            onSelectStory={(story: Story) => setSelectedStories(story ? [story] : null)}
+            onAddStory={() => setShowStoryModal(true)}
+          />
           {/* Formulário de novo post */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow flex flex-col gap-3 mb-8">
             <div className="flex items-center gap-3 mb-2">
@@ -809,6 +820,14 @@ export default function FeedPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setModalImage(null)}>
             <img src={modalImage} alt="Imagem ampliada" className="max-h-[90vh] max-w-[90vw] rounded shadow-lg border-4 border-zinc-800" />
           </div>
+        )}
+        {/* Modal de upload de story */}
+        {showStoryModal && (
+          <StoryUploadModal open={showStoryModal} onClose={() => setShowStoryModal(false)} />
+        )}
+        {/* Visualizador de stories */}
+        {selectedStories && (
+          <StoryViewer stories={selectedStories} onClose={() => setSelectedStories(null)} />
         )}
       </div>
     </RequireAuth>
