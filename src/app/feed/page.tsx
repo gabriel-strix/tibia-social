@@ -502,7 +502,7 @@ export default function FeedPage() {
         <div className="flex-1 max-w-2xl w-full" style={{ maxHeight: 'calc(100vh - 96px)' }}>
           {/* StoriesBar acima do formulário de novo post */}
           <StoriesBar
-            onSelectStory={(story: Story) => setSelectedStories(story ? [story] : null)}
+            onSelectStory={(stories: Story[]) => setSelectedStories(stories)}
             onAddStory={() => setShowStoryModal(true)}
           />
           {/* Formulário de novo post */}

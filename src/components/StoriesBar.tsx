@@ -13,7 +13,7 @@ export interface Story {
   createdAt: any;
 }
 
-export default function StoriesBar({ onSelectStory, onAddStory }: { onSelectStory: (story: Story) => void, onAddStory?: () => void }) {
+export default function StoriesBar({ onSelectStory, onAddStory }: { onSelectStory: (stories: Story[]) => void, onAddStory?: () => void }) {
   const { user } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
 
@@ -58,13 +58,13 @@ export default function StoriesBar({ onSelectStory, onAddStory }: { onSelectStor
         <button
           key={userStory.uid}
           className="flex flex-col items-center group"
-          onClick={() => onSelectStory(userStory.stories[0])}
+          onClick={() => onSelectStory(userStory.stories)}
         >
-          <div className="w-14 h-14 rounded-full border-2 border-blue-500 group-hover:ring-2 group-hover:ring-blue-400 transition overflow-hidden">
+          <div className="w-14 h-14 rounded-full border-2 border-blue-500 group-hover:ring-2 group-hover:ring-blue-400 transition overflow-hidden flex items-center justify-center">
             <img
               src={userStory.photoURL || '/default-avatar.png'}
               alt={userStory.username}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover aspect-square"
             />
           </div>
           <span className="mt-1 text-xs text-zinc-100 group-hover:text-blue-400 font-semibold truncate max-w-[56px]">{userStory.username}</span>

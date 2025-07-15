@@ -21,14 +21,46 @@ export default function StoryUploadModal({ open, onClose }: { open: boolean; onC
     }
   }
 
+  // Função para converter imagem para webp
+  async function convertToWebP(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject('Canvas não suportado');
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (!blob) return reject('Falha ao converter para WebP');
+          const webpFile = new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
+          resolve(webpFile);
+        }, 'image/webp', 0.92);
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
   async function handleUpload() {
     if (!file || !user) return;
     setUploading(true);
     try {
       const storage = getStorage();
-      const ext = file.type.startsWith('image') ? 'image' : 'video';
-      const storageRef = ref(storage, `stories/${user.uid}/${Date.now()}-${file.name}`);
-      await uploadBytes(storageRef, file);
+      let fileToUpload = file;
+      let ext = 'video';
+      if (file.type.startsWith('image/')) {
+        try {
+          fileToUpload = await convertToWebP(file);
+          ext = 'image';
+        } catch (e) {
+          alert('Falha ao converter imagem para WebP. Enviando original.');
+          ext = 'image';
+        }
+      }
+      const storageRef = ref(storage, `stories/${user.uid}/${Date.now()}-${fileToUpload.name}`);
+      await uploadBytes(storageRef, fileToUpload);
       const url = await getDownloadURL(storageRef);
       await addDoc(collection(db, "stories"), {
         uid: user.uid,
