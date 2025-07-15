@@ -358,7 +358,7 @@ export default function FeedPage() {
     const newLikes = liked
       ? post.likes?.filter((uid) => uid !== user.uid)
       : [...(post.likes || []), user.uid];
-    await updateDoc(doc(db, "posts", post.id), {
+    await updateDoc(fsDoc(db, "posts", post.id), {
       likes: newLikes,
     });
     // Notifica o dono do post apenas ao curtir (não ao descurtir)
