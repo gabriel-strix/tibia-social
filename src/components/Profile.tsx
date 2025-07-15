@@ -2,7 +2,8 @@ import CharacterForm from "@/components/CharacterForm";
 "use client";
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 import db from "@/lib/firestore";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +26,7 @@ export interface UserProfile {
   email: string;
   photoURL: string;
   characters?: Character[];
+  verified?: boolean;
 }
 
 interface EditCharacterState {
@@ -141,7 +143,7 @@ export default function Profile() {
       </div>
 
       <form className="flex items-center gap-2 mb-6" onSubmit={e => { e.preventDefault(); handleSave(); }}>
-        <label className="text-zinc-200 font-semibold">
+        <label className="text-zinc-200 font-semibold flex items-center">
           Nome:
           <input
             type="text"
@@ -150,6 +152,11 @@ export default function Profile() {
             disabled={saving}
             className="ml-2 px-2 py-1 rounded bg-zinc-800 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
           />
+          {profile.verified && (
+            <Suspense fallback={null}>
+              <VerifiedBadge />
+            </Suspense>
+          )}
         </label>
         <button
           type="submit"

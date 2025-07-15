@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { sendMessage, listenMessages, ChatMessage, markMessagesAsRead, deleteMessage } from "@/lib/chatService";
 import { sendNotification } from "@/lib/notificationService";
@@ -7,14 +7,23 @@ import { Timestamp } from "firebase/firestore";
 import { clearChatMessages, deleteChat } from "@/lib/chatAdminService";
 import { MdMoreVert, MdClose, MdAttachFile, MdSend, MdMic, MdStop } from "react-icons/md";
 
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
+
 type Props = {
   otherUid: string;
   otherName: string;
   otherPhotoURL: string;
+  otherVerified?: boolean;
 };
 
-export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props) {
+export default function ChatWindow({ otherUid, otherName, otherPhotoURL, otherVerified }: Props) {
   const { user } = useAuth();
+  // Detecta o status de verificado via query param se não vier por prop
+  let verified = otherVerified;
+  if (typeof window !== 'undefined' && verified === undefined) {
+    const urlParams = new URLSearchParams(window.location.search);
+    verified = urlParams.get('verified') === '1';
+  }
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
   const [showOptions, setShowOptions] = useState(false);
@@ -148,7 +157,14 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL }: Props
     <div className="flex flex-col h-[100dvh] bg-zinc-900 rounded-lg border border-zinc-800 shadow">
       <div className="flex items-center gap-3 p-4 border-b border-zinc-800 relative">
         <img src={otherPhotoURL} alt={otherName} className="w-10 h-10 rounded-full object-cover border border-zinc-700" />
-        <span className="text-zinc-100 font-semibold">{otherName}</span>
+        <span className="text-zinc-100 font-semibold flex items-center">
+          {otherName}
+          {verified && (
+            <Suspense fallback={null}>
+              <VerifiedBadge />
+            </Suspense>
+          )}
+        </span>
         <button
           className="ml-auto p-2 rounded hover:bg-zinc-800 transition relative"
           title="Opções do chat"

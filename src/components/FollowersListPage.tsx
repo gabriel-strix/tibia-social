@@ -4,12 +4,16 @@ import { useEffect, useState } from "react";
 import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
 import Link from "next/link";
 import db from "@/lib/firestore";
+import React, { Suspense } from "react";
+
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 
 type UserSummary = {
   uid: string;
   name: string;
   photoURL: string;
   username?: string;
+  verified?: boolean;
 };
 
 type Props = {
@@ -35,6 +39,7 @@ export default function FollowersListPage({ profileUid, type }: Props) {
             name: data?.name ?? "(sem nome)",
             photoURL: data?.photoURL ?? "/default-avatar.png",
             username: data?.username || undefined,
+            verified: data?.verified || false,
           });
         }
       }
@@ -68,7 +73,14 @@ export default function FollowersListPage({ profileUid, type }: Props) {
                     e.currentTarget.src = "/default-avatar.png";
                   }}
                 />
-                <span className="text-zinc-100 font-medium">{f.name}</span>
+                <span className="text-zinc-100 font-medium flex items-center">
+                  {f.name}
+                  {f.verified && (
+                    <Suspense fallback={null}>
+                      <VerifiedBadge />
+                    </Suspense>
+                  )}
+                </span>
               </Link>
             </li>
           ))}

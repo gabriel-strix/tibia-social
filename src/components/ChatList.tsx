@@ -11,6 +11,7 @@ interface UserPreview {
   photoURL: string;
   messageCount: number;
   hasUnread?: boolean;
+  verified?: boolean;
 }
 
 export default function ChatList() {
@@ -41,7 +42,8 @@ export default function ChatList() {
             uid,
             name: data?.name || "(sem nome)",
             photoURL: data?.photoURL || "/default-avatar.png",
-            messageCount: 0 // será atualizado pelo onSnapshot
+            messageCount: 0, // será atualizado pelo onSnapshot
+            verified: data?.verified || false
           });
         }
       }
@@ -106,9 +108,26 @@ export default function ChatList() {
       <div className="flex flex-col gap-1">
         {allUsers.length === 0 && <div className="text-zinc-400">Nenhum usuário encontrado.</div>}
         {allUsers.map(u => (
-          <Link key={u.uid} href={`/chat/${usernamesMap[u.uid] || u.uid}`} className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition relative">
+          <Link
+            key={u.uid}
+            href={{
+              pathname: `/chat/${usernamesMap[u.uid] || u.uid}`,
+              query: { verified: u.verified ? '1' : undefined }
+            }}
+            className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition relative"
+          >
             <img src={u.photoURL || "/default-avatar.png"} alt={u.name} className="w-8 h-8 rounded-full border border-zinc-700" />
-            <span className="text-zinc-100 font-semibold truncate">{u.name}</span>
+            <span className="text-zinc-100 font-semibold truncate flex items-center">
+              {u.name}
+              {u.verified && (
+                <span className="ml-1 align-middle inline-flex">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="10" cy="10" r="10" fill="#3797F0" />
+                    <path d="M6.5 10.5L9 13L13.5 8.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              )}
+            </span>
             <span className="flex items-center ml-auto gap-1">
               {unreadMap[u.uid] && (
                 <span className="bg-red-600 w-2 h-2 rounded-full inline-block" />

@@ -6,6 +6,8 @@ import { Timestamp, doc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, o
 import db from "@/lib/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import Comment from "@/components/Comment";
+import React, { Suspense } from "react";
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
 import InstagramVideo from "@/components/InstagramVideo";
@@ -42,14 +44,15 @@ export default function PostPage() {
       const docs = snapshot.docs;
       const commentsWithUsername = await Promise.all(docs.map(async (doc) => {
         const data = doc.data();
-        // Se já tem username, retorna direto
-        if (data.username) return { id: doc.id, ...data };
-        // Busca username pelo uid
+        // Se já tem username e verified, retorna direto
+        if (typeof data.verified !== 'undefined' && data.username) return { id: doc.id, ...data };
+        // Busca username e verified pelo uid
         const { doc: docRef, getDoc } = await import("firebase/firestore");
         const db = (await import("@/lib/firestore")).default;
         const userDoc = await getDoc(docRef(db, "users", data.uid));
         const username = userDoc.exists() ? userDoc.data().username : undefined;
-        return { id: doc.id, ...data, username };
+        const verified = userDoc.exists() ? userDoc.data().verified : false;
+        return { id: doc.id, ...data, username, verified };
       }));
       setComments(commentsWithUsername);
     });
@@ -162,6 +165,11 @@ export default function PostPage() {
               </a>
               <a href={`/profile/${authorUsername || post.uid}`} className="text-zinc-100 font-semibold hover:underline">
                 {post.name}
+                {post.verified && (
+                  <Suspense fallback={null}>
+                    <VerifiedBadge />
+                  </Suspense>
+                )}
               </a>
               <span className="ml-auto text-xs text-zinc-400">{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span>
             </div>
@@ -260,6 +268,7 @@ export default function PostPage() {
                 likes={comment.likes}
                 currentUserUid={user.uid}
                 username={comment.username}
+                verified={comment.verified}
                 onUpdate={handleUpdateComment}
                 onDelete={handleDeleteComment}
                 onLike={() => handleLikeComment(comment)}

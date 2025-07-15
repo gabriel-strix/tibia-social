@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import db from "@/lib/firestore";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,7 +19,7 @@ interface UserProfileProps {
 export default function UserProfile({ uid }: UserProfileProps) {
   const { user: currentUser, loading, logout } = useAuth();
   const isOwnProfile = currentUser?.uid === uid;
-  const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string; username?: string; characters?: Character[]; blockedUsers?: string[] } | null>(null);
+  const [profile, setProfile] = useState<{ name: string; email: string; photoURL: string; username?: string; characters?: Character[]; blockedUsers?: string[]; verified?: boolean } | null>(null);
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -98,7 +99,14 @@ export default function UserProfile({ uid }: UserProfileProps) {
         <img src={profile.photoURL || '/default-avatar.png'} alt="Foto do usuário" width={128} height={128} className="w-32 h-32 rounded-full object-cover border-4 border-zinc-700" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
         <div className="flex-1 flex flex-col gap-4 w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
-            <h1 className="text-2xl font-bold text-zinc-100">{profile.name}</h1>
+            <span className="flex items-center">
+              <h1 className="text-2xl font-bold text-zinc-100">{profile.name}</h1>
+              {profile.verified && (
+                <Suspense fallback={null}>
+                  <VerifiedBadge />
+                </Suspense>
+              )}
+            </span>
             {isOwnProfile && (
               <button onClick={logout} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition font-semibold">Sair</button>
             )}

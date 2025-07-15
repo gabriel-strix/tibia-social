@@ -10,7 +10,7 @@ import {
   orderBy,
   onSnapshot,
   Timestamp,
-  doc,
+  doc as fsDoc,
   updateDoc,
   deleteDoc,
   where,
@@ -32,6 +32,8 @@ import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
 import InstagramVideo from "@/components/InstagramVideo";
 import LikeAvatars from "@/components/LikeAvatars";
+import React, { Suspense } from "react";
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 import { MdComment, MdCameraAlt } from "react-icons/md";
 import RequireAuth from "@/components/RequireAuth";
 import Spinner from "@/components/Spinner";
@@ -53,6 +55,7 @@ type Post = {
   likes?: string[];
   imageURL?: string;
   videoURL?: string;
+  verified?: boolean;
 };
 
 type CommentType = {
@@ -116,12 +119,18 @@ export default function FeedPage() {
         : query(collection(db, "posts"), where("uid", "==", user.uid), orderBy("createdAt", "desc"));
 
     const unsubscribe = onSnapshot(postsQuery, async (snapshot) => {
-      let list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Post));
+      let list = await Promise.all(snapshot.docs.map(async (doc) => {
+        const postData = doc.data();
+        const userRef = fsDoc(db, "users", postData.uid);
+        const userSnap = await getDoc(userRef);
+        const verified = userSnap.exists() ? (userSnap.data() as any).verified || false : false;
+        return { id: doc.id, ...postData, verified } as Post;
+      }));
       // Filtra posts de usuários que bloquearam o usuário logado
       const blockedBy: string[] = [];
       for (const post of list) {
-        const userDoc = await getDoc(doc(db, "users", post.uid));
-        const blockedUsers = userDoc.exists() ? userDoc.data().blockedUsers || [] : [];
+        const userDoc = await getDoc(fsDoc(db, "users", post.uid));
+        const blockedUsers = userDoc.exists() ? (userDoc.data() as any).blockedUsers || [] : [];
         if (blockedUsers.includes(user.uid)) blockedBy.push(post.uid);
       }
       list = list.filter(post => !blockedBy.includes(post.uid));
@@ -214,7 +223,7 @@ export default function FeedPage() {
       if (mediaFile) {
         try {
           const result = await uploadMedia(mediaFile, docRef.id);
-          await updateDoc(doc(db, "posts", docRef.id), result);
+          await updateDoc(fsDoc(db, "posts", docRef.id), result);
         } catch (error) {
           alert('Erro ao fazer upload/atualizar mídia.');
         }
@@ -230,7 +239,7 @@ export default function FeedPage() {
   async function handleDelete(postId: string) {
     if (!confirm("Tem certeza que deseja excluir este post?")) return;
     // Busca o post para pegar a URL da imagem/vídeo
-    const postDoc = await getDoc(doc(db, "posts", postId));
+    const postDoc = await getDoc(fsDoc(db, "posts", postId));
     const post = postDoc.exists() ? postDoc.data() as Post : null;
     // Remove imagem do Storage se existir
     if (post && post.imageURL) {
@@ -274,12 +283,12 @@ export default function FeedPage() {
         alert('Erro ao remover vídeo do Storage.');
       }
     }
-    await deleteDoc(doc(db, "posts", postId));
+    await deleteDoc(fsDoc(db, "posts", postId));
   }
 
   async function handleEdit(postId: string) {
     if (!editingText.trim()) return;
-    await updateDoc(doc(db, "posts", postId), {
+    await updateDoc(fsDoc(db, "posts", postId), {
       text: editingText,
     });
     setEditingPostId(null);
@@ -291,7 +300,7 @@ export default function FeedPage() {
     if (!text || !text.trim() || !user) return;
 
     // Busca o post para notificar o dono
-    const postDoc = await getDoc(doc(db, "posts", postId));
+    const postDoc = await getDoc(fsDoc(db, "posts", postId));
     const post = postDoc.exists() ? postDoc.data() : null;
     await addDoc(collection(db, "posts", postId, "comments"), {
       uid: user.uid,
@@ -371,7 +380,7 @@ export default function FeedPage() {
     if (!user) return;
     const isFollowing = following.includes(targetUid);
 
-    const ref = doc(db, "users", user.uid, "following", targetUid);
+    const ref = fsDoc(db, "users", user.uid, "following", targetUid);
     if (isFollowing) {
       await deleteFollowDoc(ref);
     } else {
@@ -387,7 +396,7 @@ export default function FeedPage() {
       ? comment.likes?.filter((uid) => uid !== user.uid)
       : [...(comment.likes || []), user.uid];
 
-    const commentRef = doc(db, "posts", postId, "comments", comment.id);
+    const commentRef = fsDoc(db, "posts", postId, "comments", comment.id);
     await updateDoc(commentRef, { likes: newLikes });
 
     // Notifica o dono do comentário ao curtir (não ao descurtir e não notifica a si mesmo)
@@ -636,7 +645,14 @@ export default function FeedPage() {
                         className="w-10 h-10 rounded-full border border-zinc-700 object-cover group-hover:border-blue-400 transition"
                         alt={post.name}
                       />
-                      <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition">{post.name}</span>
+                      <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition flex items-center">
+                        {post.name}
+                        {post.verified && (
+                          <Suspense fallback={null}>
+                            <VerifiedBadge />
+                          </Suspense>
+                        )}
+                      </span>
                     </Link>
                     {post.uid !== user.uid && (
                       <button
@@ -757,11 +773,11 @@ export default function FeedPage() {
                           likes={comment.likes}
                           currentUserUid={user.uid}
                           onUpdate={async (id, newText) => {
-                            const commentRef = doc(db, "posts", post.id, "comments", id);
+                            const commentRef = fsDoc(db, "posts", post.id, "comments", id);
                             await updateDoc(commentRef, { text: newText });
                           }}
                           onDelete={async (id) => {
-                            const commentRef = doc(db, "posts", post.id, "comments", id);
+                            const commentRef = fsDoc(db, "posts", post.id, "comments", id);
                             await deleteDoc(commentRef);
                           }}
                           onLike={() => toggleLikeComment(post.id, comment)}

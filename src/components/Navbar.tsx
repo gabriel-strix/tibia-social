@@ -1,13 +1,15 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import UserSearchBar from "@/components/UserSearchBar";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { listenUnreadMessages } from "@/lib/chatUnreadService";
 import { listenUnreadNotifications } from "@/lib/notificationUnreadService";
 import { MdHome, MdChat, MdExplore, MdNotifications, MdSettings, MdMenu, MdClose, MdSearch } from "react-icons/md";
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -85,7 +87,14 @@ export default function Navbar() {
           <>
             <Link href={`/profile`} className="flex items-center gap-2 group">
               <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700 group-hover:border-blue-400 transition" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
-              <span className="hidden md:inline text-zinc-200 font-semibold group-hover:text-blue-400 transition">{user.displayName || 'Perfil'}</span>
+              <span className="hidden md:inline text-zinc-200 font-semibold group-hover:text-blue-400 transition flex items-center">
+                {user.displayName || 'Perfil'}
+                {user.verified && (
+                  <Suspense fallback={null}>
+                    <VerifiedBadge />
+                  </Suspense>
+                )}
+              </span>
             </Link>
             <button
               title="Configurações da conta"

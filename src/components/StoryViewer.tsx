@@ -11,11 +11,13 @@ function getTimeAgo(date: any): string {
   if (diff < 86400) return `${Math.floor(diff/3600)}h atrás`;
   return `${Math.floor(diff/86400)}d atrás`;
 }
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import "./story-animations.css";
 import db from "@/lib/firestore";
 import { doc, deleteDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
+
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 
 interface Story {
   id: string;
@@ -25,6 +27,7 @@ interface Story {
   mediaURL: string;
   type: "image" | "video";
   createdAt: any;
+  verified?: boolean;
 }
 
 interface StoryViewerProps {
@@ -163,7 +166,14 @@ export default function StoryViewer({ stories, initialIndex = 0, onClose }: Stor
           <div className="w-12 h-12 rounded-full border-2 border-blue-400 shadow-lg overflow-hidden flex items-center justify-center bg-zinc-900">
             <img src={story.photoURL || '/default-avatar.png'} alt={story.username} className="w-full h-full object-cover aspect-square" />
           </div>
-          <span className="text-zinc-100 font-bold text-lg drop-shadow-md">{story.username}</span>
+          <span className="text-zinc-100 font-bold text-lg drop-shadow-md flex items-center">
+            {story.username}
+            {story.verified && (
+              <Suspense fallback={null}>
+                <VerifiedBadge />
+              </Suspense>
+            )}
+          </span>
           <span className="text-xs text-zinc-300 ml-2">{getTimeAgo(story.createdAt)}</span>
           <button
             className="ml-2 px-2 py-1 rounded-full bg-zinc-800 bg-opacity-70 text-zinc-100 hover:bg-zinc-700 text-xl transition shadow-md"

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 import { useRouter } from "next/navigation";
 import { MdFavorite } from "react-icons/md";
 
@@ -17,6 +18,7 @@ type CommentProps = {
   onLike: () => void;
   onReport?: (reason: string) => void;
   username?: string;
+  verified?: boolean;
 };
 
 export default function Comment({
@@ -31,7 +33,8 @@ export default function Comment({
   onDelete,
   onLike,
   onReport,
-  username
+  username,
+  verified
 }: CommentProps) {
   const router = useRouter();
   const isOwner = uid === currentUserUid;
@@ -62,9 +65,12 @@ export default function Comment({
         </a>
         <a
           href={username ? `/profile/${username}` : `/profile/${uid}`}
-          className="ml-2 text-zinc-100 cursor-pointer font-semibold transition-colors duration-150 group hover:text-blue-400 hover:underline"
+          className="ml-2 text-zinc-100 cursor-pointer font-semibold transition-colors duration-150 group hover:text-blue-400 hover:underline flex items-center"
         >
           <strong>{name}</strong>
+          {verified && (
+            <span className="ml-1 align-middle inline-flex"><VerifiedBadge /></span>
+          )}
         </a>
 
         {onReport && !isOwner && (

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
+const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 import { useAuth } from "@/hooks/useAuth";
 import db from "@/lib/firestore";
 import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
@@ -25,9 +26,19 @@ export default function StoriesBar({ onSelectStory, onAddStory }: { onSelectStor
       where("createdAt", ">", since),
       orderBy("createdAt", "desc")
     );
-    const unsub = onSnapshot(q, (snap) => {
-      const arr: Story[] = [];
-      snap.forEach(doc => arr.push({ id: doc.id, ...doc.data() } as Story));
+    const unsub = onSnapshot(q, async (snap) => {
+      const arr: Story[] = await Promise.all(
+        snap.docs.map(async docSnap => {
+          const data = docSnap.data();
+          // Busca o campo verified do usuário
+          let verified = false;
+          try {
+            const userSnap = await import("firebase/firestore").then(fb => fb.getDoc(fb.doc(db, "users", data.uid)));
+            if (userSnap.exists()) verified = userSnap.data().verified || false;
+          } catch {}
+          return { id: docSnap.id, ...data, verified } as Story;
+        })
+      );
       setStories(arr);
     });
     return () => unsub();
@@ -67,7 +78,14 @@ export default function StoriesBar({ onSelectStory, onAddStory }: { onSelectStor
               className="w-full h-full object-cover aspect-square"
             />
           </div>
-          <span className="mt-1 text-xs text-zinc-100 group-hover:text-blue-400 font-semibold truncate max-w-[56px]">{userStory.username}</span>
+          <span className="mt-1 text-xs text-zinc-100 group-hover:text-blue-400 font-semibold truncate max-w-[56px] flex items-center">
+            {userStory.username}
+            {userStory.verified && (
+              <Suspense fallback={null}>
+                <VerifiedBadge />
+              </Suspense>
+            )}
+          </span>
         </button>
       ))}
     </div>
