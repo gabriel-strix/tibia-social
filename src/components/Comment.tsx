@@ -94,7 +94,21 @@ export default function Comment({
           </div>
         </div>
       ) : (
-        <p className="text-zinc-200 ml-1 mt-1 whitespace-pre-line">{text}</p>
+        <p className="text-zinc-200 ml-1 mt-1 whitespace-pre-line">
+          {text.split(/(@[\w]+)/g).map((part, i) => {
+            if (/^@[\w]+$/.test(part)) {
+              const username = part.slice(1);
+              return (
+                <a
+                  key={i}
+                  href={`/profile/${username}`}
+                  className="text-blue-400 hover:underline font-semibold"
+                >{part}</a>
+              );
+            }
+            return part;
+          })}
+        </p>
       )}
 
       <div className="flex items-center gap-2 mt-2 ml-1">

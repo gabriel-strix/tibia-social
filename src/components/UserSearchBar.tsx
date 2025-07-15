@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import db from "@/lib/firestore";
 import { MdSearch } from "react-icons/md";
 
-export default function UserSearchBar({ onSelect }: { onSelect: (user: any) => void }) {
-  const [search, setSearch] = useState("");
+export default function UserSearchBar({ onSelect, search: initialSearch = "" }: { onSelect: (user: any) => void; search?: string }) {
+  const [search, setSearch] = useState(initialSearch);
+  // Atualiza busca inicial se prop mudar
+  useEffect(() => {
+    setSearch(initialSearch);
+  }, [initialSearch]);
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);

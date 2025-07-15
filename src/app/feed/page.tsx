@@ -26,6 +26,7 @@ import {
 import { getStorage, ref, uploadBytes, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import db from "@/lib/firestore";
 import Comment from "@/components/Comment";
+import CommentInput from "@/components/CommentInput";
 import Link from "next/link";
 import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
@@ -306,6 +307,31 @@ export default function FeedPage() {
         postId,
         createdAt: Timestamp.now(),
       });
+    }
+
+    // Notifica usuários mencionados (@username)
+    const mentionMatches = text.match(/@([\w]+)/g) || [];
+    for (const mention of mentionMatches) {
+      const username = mention.slice(1);
+      // Busca usuário pelo username
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("username", "==", username));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const mentionedUser = snap.docs[0];
+        if (mentionedUser.id !== user.uid) {
+          await sendNotification({
+            toUid: mentionedUser.id,
+            fromUid: user.uid,
+            fromName: user.displayName || "",
+            fromPhotoURL: user.photoURL || "",
+            type: "comment",
+            text: `${user.displayName} mencionou você em um comentário: \"${text.trim()}\"`,
+            postId,
+            createdAt: Timestamp.now(),
+          });
+        }
+      }
     }
 
     setCommentTextMap((prev) => ({ ...prev, [postId]: "" }));
@@ -748,19 +774,14 @@ export default function FeedPage() {
                           }}
                         />
                       ))}
-                      <textarea
-                        placeholder="Escreva um comentário..."
-                        value={commentText}
-                        onChange={(e) =>
-                          setCommentTextMap((prev) => ({ ...prev, [post.id]: e.target.value }))
-                        }
-                        rows={2}
-                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mt-2"
-                      />
-                      <button
-                        onClick={() => handleAddComment(post.id)}
-                        className="mt-2 px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                      >Comentar</button>
+                      {/* Campo de comentário com menção de usuário */}
+                      <div className="mt-2">
+                        <CommentInput
+                          value={commentText}
+                          onChange={text => setCommentTextMap(prev => ({ ...prev, [post.id]: text }))}
+                          onSubmit={() => handleAddComment(post.id)}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
