@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { getPostById } from "@/lib/postService";
 import { Timestamp, doc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, orderBy, query } from "firebase/firestore";
@@ -161,7 +162,14 @@ export default function PostPage() {
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
             <div className="flex items-center gap-3 mb-2">
               <a href={`/profile/${authorUsername || post.uid}`}>
-                <img src={post.photoURL || '/default-avatar.png'} alt={post.name} className="w-10 h-10 rounded-full object-cover border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition" />
+                <Image
+                  src={post.photoURL || '/default-avatar.png'}
+                  alt={post.name}
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 rounded-full object-cover border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition"
+                  priority
+                />
               </a>
               <a href={`/profile/${authorUsername || post.uid}`} className="text-zinc-100 font-semibold hover:underline">
                 {post.name}
@@ -306,7 +314,13 @@ export default function PostPage() {
         </div>
         {modalImage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setModalImage(null)}>
-            <img src={modalImage} alt="Imagem ampliada" className="max-h-[90vh] max-w-[90vw] rounded shadow-lg border-4 border-zinc-800" />
+            <Image
+              src={modalImage}
+              alt="Imagem ampliada"
+              width={900}
+              height={900}
+              className="max-h-[90vh] max-w-[90vw] rounded shadow-lg border-4 border-zinc-800"
+            />
           </div>
         )}
       </div>

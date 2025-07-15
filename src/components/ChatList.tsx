@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { collection, query, getDocs, doc, getDoc, orderBy, limit, onSnapshot } from "firebase/firestore";
 import db from "@/lib/firestore";
@@ -116,7 +117,7 @@ export default function ChatList() {
             }}
             className="flex items-center gap-3 p-2 rounded hover:bg-zinc-800 transition relative"
           >
-            <img src={u.photoURL || "/default-avatar.png"} alt={u.name} className="w-8 h-8 rounded-full border border-zinc-700" />
+            <Image src={u.photoURL || "/default-avatar.png"} alt={u.name} width={32} height={32} className="w-8 h-8 rounded-full border border-zinc-700" />
             <span className="text-zinc-100 font-semibold truncate flex items-center">
               {u.name}
               {u.verified && (

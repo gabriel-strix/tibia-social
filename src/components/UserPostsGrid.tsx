@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
@@ -46,7 +47,14 @@ export default function UserPostsGrid({ uid }: { uid: string }) {
             aria-label="Ver post"
           />
           {post.imageURL && (
-            <img src={post.imageURL} alt="Post" className="w-full h-full object-cover group-hover:brightness-75 transition" />
+            <Image
+              src={post.imageURL}
+              alt="Post"
+              width={400}
+              height={400}
+              className="w-full h-full object-cover group-hover:brightness-75 transition"
+              priority={false}
+            />
           )}
           {post.videoURL && (
             <InstagramVideo src={post.videoURL} />

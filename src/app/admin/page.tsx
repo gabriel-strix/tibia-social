@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import db from "@/lib/firestore";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,7 +52,14 @@ export default function AdminPanel() {
         {reports.map((r) => (
           <div key={r.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col gap-2">
             <div className="flex items-center gap-3">
-              <img src={r.reportedUserPhotoURL} alt={r.reportedUserName} className="w-10 h-10 rounded-full border border-zinc-700" />
+              <Image
+                src={r.reportedUserPhotoURL}
+                alt={r.reportedUserName}
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full border border-zinc-700"
+                priority={false}
+              />
               <span className="text-zinc-100 font-semibold">{r.reportedUserName}</span>
               <span className="ml-auto text-xs text-zinc-400">{r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span>
             </div>

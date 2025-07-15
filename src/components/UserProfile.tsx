@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
+import Image from "next/image";
 const VerifiedBadge = React.lazy(() => import("@/components/VerifiedBadge"));
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import db from "@/lib/firestore";
@@ -96,7 +97,15 @@ export default function UserProfile({ uid }: UserProfileProps) {
     <div className="flex flex-col items-center w-full min-h-screen bg-zinc-950 pt-4">
       {/* Header do perfil estilo Instagram */}
       <div className="w-full max-w-3xl flex flex-col md:flex-row items-center md:items-start gap-8 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-8 mt-8 mb-8">
-        <img src={profile.photoURL || '/default-avatar.png'} alt="Foto do usuário" width={128} height={128} className="w-32 h-32 rounded-full object-cover border-4 border-zinc-700" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
+        <Image
+          src={profile.photoURL || '/default-avatar.png'}
+          alt="Foto do usuário"
+          width={128}
+          height={128}
+          className="w-32 h-32 rounded-full object-cover border-4 border-zinc-700"
+          onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
+          priority
+        />
         <div className="flex-1 flex flex-col gap-4 w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
             <span className="flex items-center">
@@ -179,6 +188,14 @@ export default function UserProfile({ uid }: UserProfileProps) {
                 />
               ) : (
                 <>
+                  {/* Avatar do personagem otimizado */}
+                  <Image
+                    src={'/default-avatar.png'}
+                    alt={`Avatar de ${char.name}`}
+                    width={64}
+                    height={64}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-zinc-700 mb-2"
+                  />
                   <b className="text-zinc-100 text-lg mb-1">{char.name}</b>
                   <span className="text-zinc-300 text-sm mb-2">Nível: {char.level}</span>
                   <span className="text-zinc-300 text-sm mb-2">Vocação: {char.vocation}</span>

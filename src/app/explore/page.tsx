@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 // Página de explorar estilo Instagram
 export default function ExplorePage() {
@@ -24,7 +25,14 @@ export default function ExplorePage() {
               href={`/profile/${user.username || user.uid}`}
               className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col items-center shadow hover:border-blue-400 transition"
             >
-              <img src={user.photoURL} alt={user.name} className="w-20 h-20 rounded-full border-2 border-zinc-700 mb-2 object-cover" />
+              <Image
+                src={user.photoURL}
+                alt={user.name}
+                width={80}
+                height={80}
+                className="w-20 h-20 rounded-full border-2 border-zinc-700 mb-2 object-cover"
+                priority={false}
+              />
               <span className="text-zinc-100 font-semibold text-lg">{user.name}</span>
               <span className="text-zinc-400 text-xs mt-1">Ver perfil</span>
             </Link>

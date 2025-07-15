@@ -28,6 +28,7 @@ import db from "@/lib/firestore";
 import Comment from "@/components/Comment";
 import CommentInput from "@/components/CommentInput";
 import Link from "next/link";
+import Image from "next/image";
 import { sendNotification } from "@/lib/notificationService";
 import { sendReport } from "@/lib/reportService";
 import InstagramVideo from "@/components/InstagramVideo";
@@ -518,7 +519,15 @@ export default function FeedPage() {
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow flex flex-col gap-3 mb-8">
             <div className="flex items-center gap-3 mb-2">
               <Link href={`/profile/${user.username || user.uid}`} className="group flex items-center gap-2 cursor-pointer">
-                <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-zinc-700 group-hover:border-blue-400 transition" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
+                <Image
+                  src={user.photoURL || '/default-avatar.png'}
+                  alt="avatar"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 rounded-full object-cover border border-zinc-700 group-hover:border-blue-400 transition"
+                  onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
+                  priority
+                />
                 <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition">{user.displayName}</span>
               </Link>
             </div>
@@ -592,7 +601,13 @@ export default function FeedPage() {
             {mediaPreview && (
               <div className="relative mt-2">
                 {mediaFile?.type.startsWith('image/') ? (
-                  <img src={mediaPreview} alt="Preview" className="max-h-48 rounded border border-zinc-700 object-contain mx-auto" />
+                  <Image
+                    src={mediaPreview}
+                    alt="Preview"
+                    width={400}
+                    height={300}
+                    className="max-h-48 rounded border border-zinc-700 object-contain mx-auto"
+                  />
                 ) : (
                   <video src={mediaPreview} controls className="max-h-48 rounded border border-zinc-700 object-contain mx-auto" />
                 )}
@@ -822,7 +837,15 @@ export default function FeedPage() {
         <aside className="hidden lg:flex flex-col w-80 ml-8 gap-6 sticky top-[80px] h-fit self-start">
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow flex flex-col items-center">
             <Link href="/profile" className="group flex flex-col items-center cursor-pointer">
-              <img src={user?.photoURL || '/default-avatar.png'} alt="avatar" className="w-16 h-16 rounded-full object-cover border-2 border-zinc-700 mb-2 group-hover:border-blue-400 transition" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
+              <Image
+                src={user?.photoURL || '/default-avatar.png'}
+                alt="avatar"
+                width={64}
+                height={64}
+                className="w-16 h-16 rounded-full object-cover border-2 border-zinc-700 mb-2 group-hover:border-blue-400 transition"
+                onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
+                priority
+              />
               <span className="text-zinc-100 font-semibold text-lg group-hover:text-blue-400 transition">{user?.displayName}</span>
             </Link>
           </div>
@@ -834,7 +857,13 @@ export default function FeedPage() {
 
         {modalImage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setModalImage(null)}>
-            <img src={modalImage} alt="Imagem ampliada" className="max-h-[90vh] max-w-[90vw] rounded shadow-lg border-4 border-zinc-800" />
+            <Image
+              src={modalImage}
+              alt="Imagem ampliada"
+              width={900}
+              height={900}
+              className="max-h-[90vh] max-w-[90vw] rounded shadow-lg border-4 border-zinc-800"
+            />
           </div>
         )}
         {/* Modal de upload de story */}

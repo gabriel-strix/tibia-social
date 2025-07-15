@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import NextImage from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import db from "@/lib/firestore";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
@@ -18,6 +19,56 @@ export default function StoryUploadModal({ open, onClose }: { open: boolean; onC
     if (f) {
       setFile(f);
       setPreview(URL.createObjectURL(f));
+    }
+  }
+
+  async function handleUpload() {
+    if (!user || !file) return;
+    setUploading(true);
+    try {
+      let mediaURL = "";
+      let type: "image" | "video" = "image";
+      const storage = getStorage();
+      let fileToUpload = file;
+      if (file.type.startsWith("image/")) {
+        // Converte para WebP se não for webp
+        if (!file.type.includes("webp")) {
+          try {
+            fileToUpload = await convertToWebP(file);
+          } catch (e) {
+            // fallback para original
+            fileToUpload = file;
+          }
+        }
+        const imageRef = ref(storage, `stories/${user.uid}/${Date.now()}-${fileToUpload.name}`);
+        await uploadBytes(imageRef, fileToUpload);
+        mediaURL = await getDownloadURL(imageRef);
+        type = "image";
+      } else if (file.type.startsWith("video/")) {
+        const videoRef = ref(storage, `stories/${user.uid}/${Date.now()}-${file.name}`);
+        await uploadBytes(videoRef, file);
+        mediaURL = await getDownloadURL(videoRef);
+        type = "video";
+      } else {
+        alert("Apenas imagens ou vídeos são suportados.");
+        setUploading(false);
+        return;
+      }
+      await addDoc(collection(db, "stories"), {
+        uid: user.uid,
+        username: user.username || user.displayName || "",
+        photoURL: user.photoURL || "",
+        mediaURL,
+        type,
+        createdAt: Timestamp.now(),
+      });
+      setFile(null);
+      setPreview(null);
+      setUploading(false);
+      onClose();
+    } catch (e) {
+      alert("Erro ao enviar story");
+      setUploading(false);
     }
   }
 
@@ -43,43 +94,6 @@ export default function StoryUploadModal({ open, onClose }: { open: boolean; onC
     });
   }
 
-  async function handleUpload() {
-    if (!file || !user) return;
-    setUploading(true);
-    try {
-      const storage = getStorage();
-      let fileToUpload = file;
-      let ext = 'video';
-      if (file.type.startsWith('image/')) {
-        try {
-          fileToUpload = await convertToWebP(file);
-          ext = 'image';
-        } catch (e) {
-          alert('Falha ao converter imagem para WebP. Enviando original.');
-          ext = 'image';
-        }
-      }
-      const storageRef = ref(storage, `stories/${user.uid}/${Date.now()}-${fileToUpload.name}`);
-      await uploadBytes(storageRef, fileToUpload);
-      const url = await getDownloadURL(storageRef);
-      await addDoc(collection(db, "stories"), {
-        uid: user.uid,
-        username: user.displayName || user.email || "",
-        photoURL: user.photoURL || '',
-        mediaURL: url,
-        type: ext,
-        createdAt: Timestamp.now(),
-      });
-      setFile(null);
-      setPreview(null);
-      onClose();
-    } catch (err) {
-      alert("Erro ao enviar story");
-    } finally {
-      setUploading(false);
-    }
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
       <div className="bg-zinc-900 rounded-lg p-6 shadow-lg w-full max-w-sm flex flex-col items-center gap-4">
@@ -98,9 +112,9 @@ export default function StoryUploadModal({ open, onClose }: { open: boolean; onC
         {preview && (
           <div className="w-full flex justify-center">
             {file?.type.startsWith('image') ? (
-              <img src={preview} alt="Preview" className="max-h-48 rounded" />
+              <NextImage src={preview || ''} alt="Preview" width={320} height={192} className="max-h-48 rounded" />
             ) : (
-              <video src={preview} controls className="max-h-48 rounded" />
+              <video src={preview || undefined} controls className="max-h-48 rounded" />
             )}
           </div>
         )}

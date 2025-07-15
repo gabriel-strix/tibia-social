@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useEffect, useRef, useState, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { sendMessage, listenMessages, ChatMessage, markMessagesAsRead, deleteMessage } from "@/lib/chatService";
@@ -156,7 +157,14 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL, otherVe
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 rounded-lg border border-zinc-800 shadow">
       <div className="flex items-center gap-3 p-4 border-b border-zinc-800 relative">
-        <img src={otherPhotoURL} alt={otherName} className="w-10 h-10 rounded-full object-cover border border-zinc-700" />
+        <Image
+          src={otherPhotoURL}
+          alt={otherName}
+          width={40}
+          height={40}
+          className="w-10 h-10 rounded-full object-cover border border-zinc-700"
+          priority
+        />
         <span className="text-zinc-100 font-semibold flex items-center">
           {otherName}
           {verified && (
@@ -205,7 +213,7 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL, otherVe
             <div className={`px-3 py-2 rounded-lg max-w-xs md:max-w-md lg:max-w-lg text-sm relative ${msg.from === user?.uid ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-100'}`}>
               {/* Exibe imagem/vídeo/áudio se houver */}
               {msg.imageURL && (
-                <img src={msg.imageURL} alt="imagem" className="max-h-48 max-w-full rounded border border-zinc-700 object-contain mb-2" />
+                <Image src={msg.imageURL} alt="imagem" width={320} height={192} className="max-h-48 max-w-full rounded border border-zinc-700 object-contain mb-2" />
               )}
               {msg.videoURL && (
                 <video src={msg.videoURL} controls className="max-h-48 w-full min-w-[220px] max-w-[340px] md:max-w-[420px] rounded border border-zinc-700 object-contain mb-2 bg-black" style={{background:'#18181b'}} />
@@ -302,7 +310,7 @@ export default function ChatWindow({ otherUid, otherName, otherPhotoURL, otherVe
         {mediaPreview && (
           <div className="relative">
             {mediaFile?.type.startsWith('image/') ? (
-              <img src={mediaPreview} alt="Preview" className="max-h-16 rounded border border-zinc-700 object-contain" />
+              <Image src={mediaPreview} alt="Preview" width={64} height={64} className="max-h-16 rounded border border-zinc-700 object-contain" />
             ) : (
               <video src={mediaPreview} controls className="max-h-16 rounded border border-zinc-700 object-contain" />
             )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import Image from "next/image";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import db from "@/lib/firestore";
 import { useEffect, useState } from "react";
@@ -116,7 +117,14 @@ export default function NotificationsPage() {
             <div key={n.id} className="flex items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-lg p-4 shadow">
               <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
                 <a href={`/profile/${usernamesMap[n.fromUid] || n.fromUid}`} title={`Ver perfil de ${n.fromName}`}>
-                  <img src={n.fromPhotoURL} alt={n.fromName} className="w-12 h-12 rounded-full border-2 border-zinc-700 hover:border-blue-500 transition object-cover" />
+                  <Image
+                    src={n.fromPhotoURL}
+                    alt={n.fromName}
+                    width={48}
+                    height={48}
+                    className="w-12 h-12 rounded-full border-2 border-zinc-700 hover:border-blue-500 transition object-cover"
+                    priority={false}
+                  />
                 </a>
               </div>
               <span className="text-zinc-100 text-base break-words max-w-xs">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Spinner from "@/components/Spinner";
@@ -127,7 +128,15 @@ export default function SettingsPage() {
                     {uploadProgress}%
                   </progress>
                 )}
-                <img id="avatar-preview" src={user.photoURL || '/default-avatar.png'} alt="Foto atual" className="w-24 h-24 rounded-full object-cover border-2 border-zinc-700 mt-2" />
+                <Image
+                  id="avatar-preview"
+                  src={user.photoURL || '/default-avatar.png'}
+                  alt="Foto atual"
+                  width={96}
+                  height={96}
+                  className="w-24 h-24 rounded-full object-cover border-2 border-zinc-700 mt-2"
+                  priority
+                />
               </label>
               <label className="flex flex-col gap-1 text-zinc-200">
                 E-mail:

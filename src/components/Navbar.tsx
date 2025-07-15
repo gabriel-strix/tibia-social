@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import UserSearchBar from "@/components/UserSearchBar";
 import { useRouter, usePathname } from "next/navigation";
@@ -42,7 +43,14 @@ export default function Navbar() {
       {/* Logo à esquerda */}
       <div className="flex items-center gap-2">
         <Link href="/feed" className="flex items-center gap-2 select-none">
-          <img src="/logo.png" alt="TibiaSocial Logo" style={{ width: 110, height: 'auto', maxHeight: 120 }} />
+          <Image
+            src="/logo.png"
+            alt="TibiaSocial Logo"
+            width={110}
+            height={40}
+            style={{ width: 110, height: 'auto', maxHeight: 120 }}
+            priority
+          />
         </Link>
       </div>
       {/* Menu mobile hamburguer */}
@@ -86,7 +94,15 @@ export default function Navbar() {
         {user ? (
           <>
             <Link href={`/profile`} className="flex items-center gap-2 group">
-              <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700 group-hover:border-blue-400 transition" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} />
+              <Image
+                src={user.photoURL || '/default-avatar.png'}
+                alt="avatar"
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700 group-hover:border-blue-400 transition"
+                onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
+                priority={false}
+              />
               <span className="hidden md:inline text-zinc-200 font-semibold group-hover:text-blue-400 transition flex items-center">
                 {user.displayName || 'Perfil'}
                 {user.verified && (
@@ -138,7 +154,15 @@ export default function Navbar() {
             <Link href="/explore" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}><MdExplore /> Explorar</Link>
             <Link href="/notifications" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}><MdNotifications /> Notificações</Link>
             <Link href="/profile" className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg" onClick={() => setMobileMenuOpen(false)}>
-              <img src={user?.photoURL || '/default-avatar.png'} alt="avatar" className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700" onError={e => { e.currentTarget.src = '/default-avatar.png'; }} /> Perfil
+              <Image
+                src={user?.photoURL || '/default-avatar.png'}
+                alt="avatar"
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700"
+                onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
+                priority={false}
+              /> Perfil
             </Link>
             <button onClick={() => { setMobileMenuOpen(false); router.push('/settings'); }} className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg"><MdSettings /> Configurações</button>
             {user?.isAdmin && (

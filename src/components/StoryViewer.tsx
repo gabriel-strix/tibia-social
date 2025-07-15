@@ -1,3 +1,4 @@
+import Image from "next/image";
 // Função utilitária para mostrar tempo relativo do story
 function getTimeAgo(date: any): string {
   if (!date) return "";
@@ -164,7 +165,14 @@ export default function StoryViewer({ stories, initialIndex = 0, onClose }: Stor
         {/* Header com avatar, nome, botão pausar e botão fechar */}
         <div className="flex items-center gap-3 w-full px-4 mt-2 mb-2 pointer-events-auto">
           <div className="w-12 h-12 rounded-full border-2 border-blue-400 shadow-lg overflow-hidden flex items-center justify-center bg-zinc-900">
-            <img src={story.photoURL || '/default-avatar.png'} alt={story.username} className="w-full h-full object-cover aspect-square" />
+            <Image
+              src={story.photoURL || '/default-avatar.png'}
+              alt={story.username}
+              width={48}
+              height={48}
+              className="w-full h-full object-cover aspect-square"
+              priority
+            />
           </div>
           <span className="text-zinc-100 font-bold text-lg drop-shadow-md flex items-center">
             {story.username}
@@ -232,7 +240,14 @@ export default function StoryViewer({ stories, initialIndex = 0, onClose }: Stor
         {/* Mídia do story com animação */}
         <div className={`w-full flex justify-center items-center mt-2 mb-4 ${animClass}`} key={current}>
           {story.type === "image" ? (
-            <img src={story.mediaURL} alt="Story" className="max-h-[60vh] rounded-xl shadow-xl border border-zinc-800 object-contain" />
+            <Image
+              src={story.mediaURL}
+              alt="Story"
+              width={600}
+              height={600}
+              className="max-h-[60vh] rounded-xl shadow-xl border border-zinc-800 object-contain"
+              priority
+            />
           ) : (
             <video src={story.mediaURL} controls autoPlay className="max-h-[60vh] rounded-xl shadow-xl border border-zinc-800 object-contain" />
           )}
