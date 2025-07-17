@@ -88,11 +88,6 @@ export default function StoriesBar({ onSelectStory, onAddStory }: { onSelectStor
           </div>
           <span className="mt-1 text-xs text-zinc-100 group-hover:text-blue-400 font-semibold truncate max-w-[56px] flex items-center">
             {userStory.username}
-            {userStory.verified && (
-              <Suspense fallback={null}>
-                <VerifiedBadge />
-              </Suspense>
-            )}
           </span>
         </button>
       ))}
