@@ -124,10 +124,10 @@ export default function Comment({
       <div className="flex items-center gap-2 mt-2 ml-1">
         <button
           onClick={onLike}
-          className={`px-2 py-1 rounded text-sm font-semibold transition-colors flex items-center gap-1 ${liked ? 'bg-pink-700 text-white' : 'bg-zinc-700 text-zinc-200 hover:bg-zinc-600'}`}
+          className={`flex items-center justify-center w-10 h-10 rounded-full text-xl transition-colors ${liked ? 'bg-pink-700 text-white' : 'bg-zinc-700 text-pink-500 hover:bg-zinc-600'}`}
+          title={liked ? 'Descurtir' : 'Curtir'}
         >
           <MdFavorite className={liked ? "text-white" : "text-pink-500"} />
-          {liked ? "Descurtir" : "Curtir"} ({likes.length})
         </button>
 
         {isOwner && !editing && (

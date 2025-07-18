@@ -1,4 +1,6 @@
+
 "use client";
+import { MdFavorite } from "react-icons/md";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -664,14 +666,17 @@ export default function FeedPage() {
                         onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
                         priority={false}
                       />
-                      <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition flex items-center">
-                        {post.name}
-                        {post.verified && (
-                          <Suspense fallback={null}>
-                            <VerifiedBadge />
-                          </Suspense>
-                        )}
-                      </span>
+                    <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition flex items-center">
+                      {post.name}
+                      {post.verified && (
+                        <Suspense fallback={null}>
+                          <VerifiedBadge />
+                        </Suspense>
+                      )}
+                    </span>
+                    <span className="ml-auto text-xs text-zinc-400">
+                      {post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}
+                    </span>
                     </Link>
                     {post.uid !== user.uid && (
                       <button
@@ -704,17 +709,17 @@ export default function FeedPage() {
                     <div className="flex items-center gap-4 mt-2">
                       <button
                         onClick={() => toggleLike(post)}
-                        className={`flex items-center gap-1 px-3 py-1 rounded text-sm font-semibold transition-colors ${liked ? 'bg-pink-700 text-white' : 'bg-zinc-700 text-zinc-200 hover:bg-zinc-600'}`}
+                        className={`flex items-center justify-center w-10 h-10 rounded-full text-xl transition-colors ${liked ? 'bg-pink-700 text-white' : 'bg-zinc-700 text-pink-500 hover:bg-zinc-600'}`}
+                        title={liked ? 'Descurtir' : 'Curtir'}
                       >
-                        {liked ? "💔" : "❤️"}
-                        <span>{post.likes?.length || 0}</span>
+                        <MdFavorite className={liked ? "text-white" : "text-pink-500"} />
                       </button>
                       <button
                         onClick={() => setShowCommentsMap((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}
-                        className="flex items-center gap-1 px-3 py-1 rounded text-sm font-semibold bg-zinc-700 text-zinc-200 hover:bg-zinc-600"
+                        className="flex items-center justify-center w-10 h-10 rounded-full text-xl bg-zinc-700 text-zinc-200 hover:bg-zinc-600 transition-colors"
+                        title="Comentários"
                       >
-                        <MdComment className="w-5 h-5" />
-                        <span>{comments.length}</span>
+                        <MdComment className="w-6 h-6" />
                       </button>
                       {isOwner && editingPostId !== post.id && (
                         <>

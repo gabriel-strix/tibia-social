@@ -1,7 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
+import { MdFavorite } from "react-icons/md";
+import FeedPost from "@/components/FeedPost";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { getPostById } from "@/lib/postService";
 import { Timestamp, doc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, orderBy, query } from "firebase/firestore";
 import db from "@/lib/firestore";
@@ -157,114 +160,44 @@ export default function PostPage() {
 
   return (
     <RequireAuth>
-      <div className="flex justify-center w-full min-h-screen bg-zinc-950 pt-4">
-        <div className="w-full max-w-xl flex flex-col gap-8 mt-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <a href={`/profile/${authorUsername || post.uid}`}>
-                <Image
-                  src={post.photoURL || '/default-avatar.png'}
-                  alt={post.name}
-                  width={40}
-                  height={40}
-                  className="w-10 h-10 rounded-full object-cover border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition"
-                  priority
-                  unoptimized
-                />
-              </a>
-              <a href={`/profile/${authorUsername || post.uid}`} className="text-zinc-100 font-semibold hover:underline">
-                {post.name}
-                {post.verified && (
-                  <Suspense fallback={null}>
-                    <VerifiedBadge />
-                  </Suspense>
-                )}
-              </a>
-              <span className="ml-auto text-xs text-zinc-400">{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}</span>
-            </div>
-            {post.imageURL && (
-              <>
-                <img
-                  src={post.imageURL}
-                  alt="Imagem do post"
-                  className="w-full max-h-[400px] object-contain bg-zinc-800 border-b border-zinc-800 cursor-pointer transition hover:brightness-75 mx-auto"
-                  style={{ display: 'block', background: '#18181b' }}
-                  onClick={() => setModalImage(post.imageURL)}
-                />
-              </>
-            )}
-            {post.videoURL && (
-              <InstagramVideo src={post.videoURL} />
-            )}
-            {editingPost ? (
-              <div className="flex flex-col gap-2 mt-2">
-                <textarea
-                  value={editingText}
-                  onChange={(e) => setEditingText(e.target.value)}
-                  rows={3}
-                  className="w-full p-2 rounded bg-zinc-900 border border-zinc-700 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleEditPost}
-                    className="px-4 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                  >Salvar</button>
-                  <button
-                    onClick={() => setEditingPost(false)}
-                    className="px-4 py-1 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-100 font-semibold"
-                  >Cancelar</button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-zinc-200 whitespace-pre-line mb-2">{post.text}</p>
-            )}
-            <div className="flex items-center gap-3 mt-2">
-              <button
-                onClick={toggleLike}
-                className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${liked ? 'bg-pink-700 text-white' : 'bg-zinc-700 text-zinc-200 hover:bg-zinc-600'}`}
-              >
-                {liked ? "💔 Descurtir" : "❤️ Curtir"} ({post.likes?.length || 0})
-              </button>
-              {/* Botão de denúncia de post no individual */}
-              {!isOwner && post.uid !== user.uid && (
-                <button
-                  onClick={async () => {
-                    const reason = prompt('Descreva o motivo da denúncia:');
-                    if (!reason) return;
-                    await sendReport({
-                      type: "post",
-                      contentId: post.id,
-                      contentText: post.text,
-                      reportedByUid: user.uid,
-                      reportedByName: user.displayName || "",
-                      reportedByPhotoURL: user.photoURL || "",
-                      reportedUserUid: post.uid,
-                      reportedUserName: post.name,
-                      reportedUserPhotoURL: post.photoURL,
-                      reason,
-                      createdAt: Timestamp.now(),
-                    });
-                    alert('Denúncia enviada!');
-                  }}
-                  className="px-3 py-1 rounded bg-red-700 hover:bg-red-800 text-white font-semibold text-xs"
-                >Denunciar</button>
-              )}
-              {isOwner && !editingPost && (
-                <>
-                  <button
-                    onClick={() => { setEditingPost(true); setEditingText(post.text); }}
-                    className="px-3 py-1 rounded bg-yellow-600 hover:bg-yellow-700 text-white font-semibold"
-                  >Editar</button>
-                  <button
-                    onClick={handleDeletePost}
-                    className="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white font-semibold"
-                  >Excluir</button>
-                </>
-              )}
-            </div>
-          </div>
+      <div className="flex justify-center w-full mt-8 px-2 md:px-0">
+        <div className="w-full max-w-2xl flex flex-col gap-6">
+          <FeedPost
+            post={post}
+            authorUsername={authorUsername}
+            user={user}
+            liked={liked}
+            isOwner={isOwner}
+            onLike={toggleLike}
+            onEdit={() => { setEditingPost(true); setEditingText(post.text); }}
+            onDelete={handleDeletePost}
+            onReport={async () => {
+              const reason = prompt('Descreva o motivo da denúncia:');
+              if (!reason) return;
+              await sendReport({
+                type: "post",
+                contentId: post.id,
+                contentText: post.text,
+                reportedByUid: user.uid,
+                reportedByName: user.displayName || "",
+                reportedByPhotoURL: user.photoURL || "",
+                reportedUserUid: post.uid,
+                reportedUserName: post.name,
+                reportedUserPhotoURL: post.photoURL,
+                reason,
+                createdAt: Timestamp.now(),
+              });
+              alert('Denúncia enviada!');
+            }}
+            editingPost={editingPost}
+            editingText={editingText}
+            setEditingText={setEditingText}
+            handleEditPost={handleEditPost}
+            setEditingPost={setEditingPost}
+            setModalImage={setModalImage}
+          />
           {/* Comentários */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow p-6 mt-6">
             <strong className="text-zinc-100">Comentários</strong>
             {comments.length === 0 && <p className="text-zinc-400">Sem comentários ainda.</p>}
             {comments.map((comment) => (
@@ -317,7 +250,7 @@ export default function PostPage() {
         {modalImage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={() => setModalImage(null)}>
             <Image
-              src={modalImage}
+              src={modalImage as string}
               alt="Imagem ampliada"
               width={900}
               height={900}
