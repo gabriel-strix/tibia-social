@@ -526,7 +526,8 @@ export default function FeedPage() {
                   height={40}
                   className="w-10 h-10 rounded-full object-cover border border-zinc-700 group-hover:border-blue-400 transition"
                   onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
-                  priority
+                  priority={true}
+                  unoptimized
                 />
                 <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition">{user.displayName}</span>
               </Link>
