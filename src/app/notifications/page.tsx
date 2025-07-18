@@ -124,6 +124,7 @@ export default function NotificationsPage() {
                     height={48}
                     className="w-12 h-12 rounded-full border-2 border-zinc-700 hover:border-blue-500 transition object-cover"
                     priority={false}
+                    unoptimized
                   />
                 </a>
               </div>

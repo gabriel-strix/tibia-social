@@ -169,6 +169,7 @@ export default function PostPage() {
                   height={40}
                   className="w-10 h-10 rounded-full object-cover border border-zinc-700 hover:ring-2 hover:ring-blue-500 transition"
                   priority
+                  unoptimized
                 />
               </a>
               <a href={`/profile/${authorUsername || post.uid}`} className="text-zinc-100 font-semibold hover:underline">

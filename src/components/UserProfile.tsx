@@ -105,6 +105,7 @@ export default function UserProfile({ uid }: UserProfileProps) {
           className="w-32 h-32 rounded-full object-cover border-4 border-zinc-700"
           onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
           priority
+          unoptimized
         />
         <div className="flex-1 flex flex-col gap-4 w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">

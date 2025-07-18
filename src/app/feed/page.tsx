@@ -653,12 +653,15 @@ export default function FeedPage() {
                   {/* Header do post */}
                   <div className="flex items-center gap-3 px-4 pt-4 pb-2">
                     <Link href={`/profile/${usernamesMap[post.uid] || post.uid}`} className="group flex items-center gap-2 cursor-pointer">
-                      <img
-                        src={post.photoURL}
+                      <Image
+                        src={post.photoURL || '/default-avatar.png'}
                         width={40}
                         height={40}
                         className="w-10 h-10 rounded-full border border-zinc-700 object-cover group-hover:border-blue-400 transition"
                         alt={post.name}
+                        unoptimized
+                        onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
+                        priority={false}
                       />
                       <span className="text-zinc-100 font-semibold group-hover:text-blue-400 transition flex items-center">
                         {post.name}
@@ -846,6 +849,7 @@ export default function FeedPage() {
                 className="w-16 h-16 rounded-full object-cover border-2 border-zinc-700 mb-2 group-hover:border-blue-400 transition"
                 onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
                 priority
+                unoptimized
               />
               <span className="text-zinc-100 font-semibold text-lg group-hover:text-blue-400 transition">{user?.displayName}</span>
             </Link>

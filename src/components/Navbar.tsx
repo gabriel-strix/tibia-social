@@ -102,6 +102,7 @@ export default function Navbar() {
                 className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700 group-hover:border-blue-400 transition"
                 onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
                 priority={false}
+                unoptimized
               />
               <span className="hidden md:inline text-zinc-200 font-semibold group-hover:text-blue-400 transition flex items-center">
                 {user.displayName || 'Perfil'}
@@ -162,6 +163,7 @@ export default function Navbar() {
                 className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700"
                 onError={(e: any) => { e.currentTarget.src = '/default-avatar.png'; }}
                 priority={false}
+                unoptimized
               /> Perfil
             </Link>
             <button onClick={() => { setMobileMenuOpen(false); router.push('/settings'); }} className="flex items-center gap-3 text-zinc-200 hover:text-blue-400 text-lg"><MdSettings /> Configurações</button>
