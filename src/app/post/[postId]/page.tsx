@@ -186,7 +186,8 @@ export default function PostPage() {
                 <img
                   src={post.imageURL}
                   alt="Imagem do post"
-                  className="w-full max-h-[400px] object-cover bg-zinc-800 border-b border-zinc-800 cursor-pointer transition hover:brightness-75"
+                  className="w-full max-h-[400px] object-contain bg-zinc-800 border-b border-zinc-800 cursor-pointer transition hover:brightness-75 mx-auto"
+                  style={{ display: 'block', background: '#18181b' }}
                   onClick={() => setModalImage(post.imageURL)}
                 />
               </>
